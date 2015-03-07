@@ -19,8 +19,8 @@ $(document).ready(function()
 	for (var player in players)
 		scene.add(players[player].mesh);
 	scene.add(new THREE.Mesh(
-		new THREE.BoxGeometry(MAX_BOUND*2,MAX_BOUND*2,MAX_BOUND*2,10,10),
-		new THREE.MeshBasicMaterial({color:0x0A0A0A, transparent: true, side: THREE.DoubleSide, opacity: 0.05})));
+		new THREE.BoxGeometry(MAX_BOUND*2,MAX_BOUND*2,MAX_BOUND*2,20,20),
+		new THREE.MeshBasicMaterial({color:0x0A0A0A, transparent: true, side: THREE.DoubleSide, opacity: 0.05, wireframe:true})));
 	animate();
 	console.log(objects[0])
 });
@@ -272,6 +272,23 @@ function createSkyBox() {
 	skyBox.renderDepth = 1000.0;
 	scene.add(skyBox);
 }
+function checkCollisions(mesh,collidableMeshList) // http://stackoverflow.com/questions/11473755/how-to-detect-collision-in-three-js
+{
+	for (var vertexIndex = 0; vertexIndex < mesh.geometry.vertices.length; vertexIndex++)
+	{
+		var localVertex = mesh.geometry.vertices[vertexIndex].clone();
+		var globalVertex = localVertex.applyMatrix4(mesh.matrix);
+		var directionVector = globalVertex.sub( mesh.position );
+
+		var ray = new THREE.Raycaster( mesh.position, directionVector.clone().normalize() );
+		var collisionResults = ray.intersectObjects( collidableMeshList );
+		if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) 
+		{
+			return true;
+		}
+	}
+	return false;
+}
 function animate() {
 
 	requestAnimationFrame( animate );
@@ -286,6 +303,16 @@ function animate() {
 		players[current_focused_player].moveY(key_controls.step);
 	if (key_controls.down)
 		players[current_focused_player].moveY(-key_controls.step);
+	collidableMeshList = []
+	for (player in players)
+	{
+		collidableMeshList.push(players[player].mesh)
+	}
+	for (obj in objects)
+	{
+		if (checkCollisions(objects[obj].mesh,collidableMeshList))
+			console.log("collision");
+	}
 	renderer.render( scene, camera );
 
 }
