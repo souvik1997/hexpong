@@ -4,7 +4,7 @@ var SKYBOX_MAX_RADIUS = 12000;
 var MAX_BOUND = 2000;
 
 var objects = [new Ball(new THREE.Vector3(0,0,0), new THREE.Vector3(10,-6,4), get_random_color())];
-var players = [new Player(0,get_random_color()),new Player(1,get_random_color()),new Player(2,get_random_color()),new Player(3,get_random_color()),new Player(4,get_random_color()),new Player(5,get_random_color())];
+var players = [new Player(0,get_random_color(),false),new Player(1,get_random_color()),new Player(2,get_random_color()),new Player(3,get_random_color()),new Player(4,get_random_color()),new Player(5,get_random_color())];
 
 var current_focused_player = 0;
 var key_controls = {left:false, right:false, up:false, down:false, step:10}
@@ -17,7 +17,8 @@ $(document).ready(function()
 	for (var obj in objects)
 		scene.add(objects[obj].mesh);
 	for (var player in players)
-		scene.add(players[player].mesh);
+		if (players[player].enabled)
+			scene.add(players[player].mesh);
 	scene.add(new THREE.Mesh(
 		new THREE.BoxGeometry(MAX_BOUND*2,MAX_BOUND*2,MAX_BOUND*2,20,20),
 		new THREE.MeshBasicMaterial({color:0x0A0A0A, transparent: true, side: THREE.DoubleSide, opacity: 0.05, wireframe:true})));
@@ -47,7 +48,7 @@ function Ball(position,velocity,color){
 		{
 			this.position.x = MAX_BOUND;			
 			this.velocity.x *= -1;
-			if (!checkCollisions(this.mesh,[players[1].mesh]))
+			if (players[1].enabled && !checkCollisions(this.mesh,[players[1].mesh]))
 				console.log("player 1 missed");
 
 		}
@@ -55,35 +56,35 @@ function Ball(position,velocity,color){
 		{
 			this.position.x = -MAX_BOUND;
 			this.velocity.x *= -1;
-			if (!checkCollisions(this.mesh,[players[0].mesh]))
+			if (players[0].enabled && !checkCollisions(this.mesh,[players[0].mesh]))
 				console.log("player 0 missed");
 		}
 		if (this.position.y >= MAX_BOUND)
 		{
 			this.position.y = MAX_BOUND;
 			this.velocity.y *= -1;
-			if (!checkCollisions(this.mesh,[players[3].mesh]))
+			if (players[3].enabled && !checkCollisions(this.mesh,[players[3].mesh]))
 				console.log("player 3 missed");;
 		}
 		if (this.position.y <= -MAX_BOUND)
 		{
 			this.position.y = -MAX_BOUND;
 			this.velocity.y *= -1;
-			if (!checkCollisions(this.mesh,[players[2].mesh]))
+			if (players[2].enabled && !checkCollisions(this.mesh,[players[2].mesh]))
 				console.log("player 2 missed");
 		}
 		if (this.position.z >= MAX_BOUND)
 		{
 			this.position.z = MAX_BOUND;
 			this.velocity.z *= -1;
-			if (!checkCollisions(this.mesh,[players[4].mesh]))
+			if (players[4].enabled && !checkCollisions(this.mesh,[players[4].mesh]))
 				console.log("player 4 missed");
 		}
 		if (this.position.z <= -MAX_BOUND)
 		{
 			this.position.z = -MAX_BOUND;
 			this.velocity.z *= -1;
-			if (!checkCollisions(this.mesh,[players[5].mesh]))
+			if (players[5].enabled && !checkCollisions(this.mesh,[players[5].mesh]))
 				console.log("player 5 missed");
 		}
 		this.mesh.translateX(position.x-this.mesh.position.x);
@@ -92,10 +93,18 @@ function Ball(position,velocity,color){
 	}
 }
 
-function Player(num,color){
+function Player(num,color,enabled){
 	var SIZE = 500;
 	this.color = color;
 	this.position = new THREE.Vector2(0,0);
+	if (enabled === undefined)
+	{
+		this.enabled = true;
+	}
+	else
+	{
+		this.enabled = enabled;
+	}
 	this.mesh = new THREE.Mesh(
 		new THREE.BoxGeometry(SIZE,SIZE,SIZE/8),
 		new THREE.MeshBasicMaterial({color:this.color, side:THREE.DoubleSide, transparent:true, opacity:0.9}))
