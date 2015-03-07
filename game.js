@@ -3,8 +3,8 @@ var geometry, material, mesh;
 var SKYBOX_MAX_RADIUS = 12000;
 var MAX_BOUND = 2000;
 
-var objects = [new Ball(new THREE.Vector3(0,0,0), new THREE.Vector3(30,29,10), 0xff33bb),new Ball(new THREE.Vector3(-2,0,0), new THREE.Vector3(10,12,3), 0xa351bf)]
-var players = [new Player(0,Math.round(Math.random()*16777215)),new Player(1,Math.round(Math.random()*16777215)),new Player(2,Math.round(Math.random()*16777215)),new Player(3,Math.round(Math.random()*16777215)),new Player(4,Math.round(Math.random()*16777215)),new Player(5,Math.round(Math.random()*16777215))];
+var objects = [new Ball(new THREE.Vector3(0,0,0), new THREE.Vector3(10,-6,4), 0xff33bb)];
+var players = [new Player(0,Math.round(Math.random()*0xffffff)),new Player(1,Math.round(Math.random()*0xffffff)),new Player(2,Math.round(Math.random()*0xffffff)),new Player(3,Math.round(Math.random()*0xffffff)),new Player(4,Math.round(Math.random()*0xffffff)),new Player(5,Math.round(Math.random()*0xffffff))];
 
 var current_focused_player = 0;
 var key_controls = {left:false, right:false, up:false, down:false, step:10}
@@ -39,20 +39,48 @@ function Ball(position,velocity,color){
 			new THREE.MeshPhongMaterial({color:this.color}));
 	this.update = function(){
 		this.position.add(velocity);
-		if (Math.abs(this.position.x) > MAX_BOUND)
+		if (this.position.x >= MAX_BOUND)
 		{
-			this.position.x = this.position.x > 0 ? MAX_BOUND : -MAX_BOUND;
+			this.position.x = MAX_BOUND;			
 			this.velocity.x *= -1;
+			if (!checkCollisions(this.mesh,[players[1].mesh]))
+				console.log("player 1 missed");
+
 		}
-		if (Math.abs(this.position.y) > MAX_BOUND)
+		if (this.position.x <= -MAX_BOUND)
 		{
-			this.position.y = this.position.y > 0 ? MAX_BOUND : -MAX_BOUND;
+			this.position.x = -MAX_BOUND;
+			this.velocity.x *= -1;
+			if (!checkCollisions(this.mesh,[players[0].mesh]))
+				console.log("player 0 missed");
+		}
+		if (this.position.y >= MAX_BOUND)
+		{
+			this.position.y = MAX_BOUND;
 			this.velocity.y *= -1;
+			if (!checkCollisions(this.mesh,[players[3].mesh]))
+				console.log("player 3 missed");;
 		}
-		if (Math.abs(this.position.z) > MAX_BOUND)
+		if (this.position.y <= -MAX_BOUND)
 		{
-			this.position.z = this.position.z > 0 ? MAX_BOUND : -MAX_BOUND;
+			this.position.y = -MAX_BOUND;
+			this.velocity.y *= -1;
+			if (!checkCollisions(this.mesh,[players[2].mesh]))
+				console.log("player 2 missed");
+		}
+		if (this.position.z >= MAX_BOUND)
+		{
+			this.position.z = MAX_BOUND;
 			this.velocity.z *= -1;
+			if (!checkCollisions(this.mesh,[players[4].mesh]))
+				console.log("player 4 missed");
+		}
+		if (this.position.z <= -MAX_BOUND)
+		{
+			this.position.z = -MAX_BOUND;
+			this.velocity.z *= -1;
+			if (!checkCollisions(this.mesh,[players[5].mesh]))
+				console.log("player 5 missed");
 		}
 		this.mesh.translateX(position.x-this.mesh.position.x);
 		this.mesh.translateY(position.y-this.mesh.position.y);
@@ -65,7 +93,7 @@ function Player(num,color){
 	this.color = color;
 	this.position = new THREE.Vector2(0,0);
 	this.mesh = new THREE.Mesh(
-		new THREE.BoxGeometry(SIZE,SIZE,SIZE/5),
+		new THREE.BoxGeometry(SIZE,SIZE,SIZE/8),
 		new THREE.MeshBasicMaterial({color:this.color, side:THREE.DoubleSide, transparent:true, opacity:0.9}))
 	/* Positions:
 		0: -x
@@ -284,6 +312,7 @@ function checkCollisions(mesh,collidableMeshList) // http://stackoverflow.com/qu
 		var collisionResults = ray.intersectObjects( collidableMeshList );
 		if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) 
 		{
+			console.log("collision")
 			return true;
 		}
 	}
@@ -303,16 +332,6 @@ function animate() {
 		players[current_focused_player].moveY(key_controls.step);
 	if (key_controls.down)
 		players[current_focused_player].moveY(-key_controls.step);
-	collidableMeshList = []
-	for (player in players)
-	{
-		collidableMeshList.push(players[player].mesh)
-	}
-	for (obj in objects)
-	{
-		if (checkCollisions(objects[obj].mesh,collidableMeshList))
-			console.log("collision");
-	}
 	renderer.render( scene, camera );
 
 }
