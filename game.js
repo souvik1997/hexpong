@@ -1,21 +1,26 @@
 var scene, camera, renderer;
 var geometry, material, mesh;
-var SKYBOX_MAX_RADIUS = 10000;
-var MAX_BOUND = 1000;
+var SKYBOX_MAX_RADIUS = 12000;
+var MAX_BOUND = 2000;
 
 var objects = [new Ball(new THREE.Vector3(0,0,0), new THREE.Vector3(30,29,10), 0xff33bb),new Ball(new THREE.Vector3(-2,0,0), new THREE.Vector3(10,12,3), 0xa351bf)]
-var players = [new Player(5,0xccaacc)];
+var players = [new Player(0,Math.round(Math.random()*16777215)),new Player(1,Math.round(Math.random()*16777215)),new Player(2,Math.round(Math.random()*16777215)),new Player(3,Math.round(Math.random()*16777215)),new Player(4,Math.round(Math.random()*16777215)),new Player(5,Math.round(Math.random()*16777215))];
+
+var current_focused_player = 0;
+var key_controls = {left:false, right:false, up:false, down:false, step:10}
+
 $(document).ready(function()
 {
 	init();
+	bind_keys();
 	createSkyBox();
 	for (var obj in objects)
 		scene.add(objects[obj].mesh);
 	for (var player in players)
 		scene.add(players[player].mesh);
 	scene.add(new THREE.Mesh(
-		new THREE.BoxGeometry(MAX_BOUND*2,MAX_BOUND*2,MAX_BOUND*2),
-		new THREE.MeshPhongMaterial({color:0x0A0A0A, transparent: true, side: THREE.DoubleSide, opacity: 0.2})));
+		new THREE.BoxGeometry(MAX_BOUND*2,MAX_BOUND*2,MAX_BOUND*2,10,10),
+		new THREE.MeshBasicMaterial({color:0x0A0A0A, transparent: true, side: THREE.DoubleSide, opacity: 0.05})));
 	animate();
 	console.log(objects[0])
 });
@@ -56,12 +61,12 @@ function Ball(position,velocity,color){
 }
 
 function Player(num,color){
-	var SIZE = 300;
+	var SIZE = 500;
 	this.color = color;
 	this.position = new THREE.Vector2(0,0);
 	this.mesh = new THREE.Mesh(
-		new THREE.PlaneGeometry(SIZE,SIZE),
-		new THREE.MeshPhongMaterial({color:this.color, side:THREE.DoubleSide}))
+		new THREE.BoxGeometry(SIZE,SIZE,SIZE/5),
+		new THREE.MeshBasicMaterial({color:this.color, side:THREE.DoubleSide, transparent:true, opacity:0.9}))
 	/* Positions:
 		0: -x
 		1: +x
@@ -98,15 +103,15 @@ function Player(num,color){
 	}
 	this.moveY = function(step){
 		
-		if (this.position.y + step > MAX_BOUND/2 + SIZE)
+		if (this.position.y + step > MAX_BOUND-SIZE/2)
 		{
-			step = MAX_BOUND/2 + SIZE - this.position.y;
-			this.position.y = MAX_BOUND/2 + SIZE;
+			step = MAX_BOUND-SIZE/2 - this.position.y;
+			this.position.y = MAX_BOUND-SIZE/2;
 		}
-		else if (this.position.y + step < -MAX_BOUND/2 - SIZE)
+		else if (this.position.y + step < -MAX_BOUND+SIZE/2)
 		{
-			step = -MAX_BOUND/2 - SIZE - this.position.y;
-			this.position.y = -MAX_BOUND/2 - SIZE;
+			step = -MAX_BOUND+SIZE/2 - this.position.y;
+			this.position.y = -MAX_BOUND+SIZE/2;
 		}
 		else 
 		{
@@ -135,15 +140,15 @@ function Player(num,color){
 		}		
 	}
 	this.moveX = function(step){
-		if (this.position.x + step > MAX_BOUND/2 + SIZE)
+		if (this.position.x + step > MAX_BOUND-SIZE/2)
 		{
-			step = MAX_BOUND/2 + SIZE - this.position.x;
-			this.position.x = MAX_BOUND/2 + SIZE;
+			step = MAX_BOUND-SIZE/2 - this.position.x;
+			this.position.x = MAX_BOUND-SIZE/2;
 		}
-		else if (this.position.x + step < -MAX_BOUND/2 - SIZE)
+		else if (this.position.x + step < -MAX_BOUND+SIZE/2)
 		{
-			step = -MAX_BOUND/2 - SIZE - this.position.x;
-			this.position.x = -MAX_BOUND/2 - SIZE;
+			step = -MAX_BOUND+SIZE/2 - this.position.x;
+			this.position.x = -MAX_BOUND+SIZE/2;
 		}
 		else {
 			this.position.x += step;
@@ -171,15 +176,74 @@ function Player(num,color){
 	}
 
 }
+
+function bind_keys()
+{
+	$(document).keydown(function(e) {
+		switch(e.which) {
+			case 48:
+				current_focused_player = 0;
+				break;
+			case 49:
+				current_focused_player = 1;
+				break;
+			case 50:
+				current_focused_player = 2;
+				break;
+			case 51:
+				current_focused_player = 3;
+				break;
+			case 52:
+				current_focused_player = 4;
+				break;
+			case 53:
+				current_focused_player = 5;
+				break;
+
+			case 37: // left
+				key_controls.left = true;
+				break;
+			case 38: // up
+				key_controls.up = true;
+				break;
+			case 39: // right
+				key_controls.right = true
+				break;
+			case 40: // down
+				key_controls.down = true;
+				break;
+			default: return;
+		}
+		e.preventDefault(); 
+	});
+	$(document).keyup(function(e) {
+		switch(e.which) {
+			case 37: // left
+				key_controls.left = false;
+				break;
+			case 38: // up
+				key_controls.up = false;
+				break;
+			case 39: // right
+				key_controls.right = false;
+				break;
+			case 40: // down
+				key_controls.down = false;
+				break;
+			default: return;
+		}
+		e.preventDefault(); 
+	});
+}
 function init() {
 
 	scene = new THREE.Scene();
-	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 20000 );
+	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, SKYBOX_MAX_RADIUS*2 );
 	camera.position.z = 1000;
-	var light = new THREE.PointLight( 0xffffff, 1, 3000 );
-	light.position.set( 0, 0, 0 );
-	scene.add(light);
-	scene.add(new THREE.AmbientLight( 0x323232 ));
+	var central_light = new THREE.PointLight( 0xffffff, 1, SKYBOX_MAX_RADIUS );
+	central_light.position.set( 0, 0, 0 );
+	scene.add(central_light);
+
 	renderer = new THREE.WebGLRenderer();
 	renderer.autoClear = true;
 	renderer.setSize( window.innerWidth, window.innerHeight );
@@ -214,6 +278,14 @@ function animate() {
 	for (var obj in objects)
 		objects[obj].update()
 	controls.update();
+	if (key_controls.left)
+		players[current_focused_player].moveX(-key_controls.step);
+	if (key_controls.right)
+		players[current_focused_player].moveX(key_controls.step);
+	if (key_controls.up)
+		players[current_focused_player].moveY(key_controls.step);
+	if (key_controls.down)
+		players[current_focused_player].moveY(-key_controls.step);
 	renderer.render( scene, camera );
 
 }
