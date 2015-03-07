@@ -3,8 +3,8 @@ var geometry, material, mesh;
 var SKYBOX_MAX_RADIUS = 12000;
 var MAX_BOUND = 2000;
 
-var objects = [new Ball(new THREE.Vector3(0,0,0), new THREE.Vector3(10,-6,4), 0xff33bb)];
-var players = [new Player(0,Math.round(Math.random()*0xffffff)),new Player(1,Math.round(Math.random()*0xffffff)),new Player(2,Math.round(Math.random()*0xffffff)),new Player(3,Math.round(Math.random()*0xffffff)),new Player(4,Math.round(Math.random()*0xffffff)),new Player(5,Math.round(Math.random()*0xffffff))];
+var objects = [new Ball(new THREE.Vector3(0,0,0), new THREE.Vector3(10,-6,4), get_random_color())];
+var players = [new Player(0,get_random_color()),new Player(1,get_random_color()),new Player(2,get_random_color()),new Player(3,get_random_color()),new Player(4,get_random_color()),new Player(5,get_random_color())];
 
 var current_focused_player = 0;
 var key_controls = {left:false, right:false, up:false, down:false, step:10}
@@ -25,6 +25,10 @@ $(document).ready(function()
 	console.log(objects[0])
 });
 
+function get_random_color()
+{
+	return Math.round(Math.random()*0xffffff);
+}
 
 function Ball(position,velocity,color){
 	var RADIUS = 50;
