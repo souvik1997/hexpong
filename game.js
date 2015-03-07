@@ -1,13 +1,13 @@
 var scene, camera, renderer;
 var geometry, material, mesh;
-var SKYBOX_MAX_RADIUS = 12000;
+var SKYBOX_MAX_RADIUS = 7000;
 var MAX_BOUND = 2000;
 
 var objects = [new Ball(new THREE.Vector3(0,0,0), new THREE.Vector3(10,-6,4), get_random_color())];
 var players = [new Player(0,get_random_color(),false),new Player(1,get_random_color()),new Player(2,get_random_color()),new Player(3,get_random_color()),new Player(4,get_random_color()),new Player(5,get_random_color())];
 
 var current_focused_player = 0;
-var key_controls = {left:false, right:false, up:false, down:false, step:10}
+var key_controls = {left:false, right:false, up:false, down:false, step:30}
 
 $(document).ready(function()
 {
@@ -94,7 +94,7 @@ function Ball(position,velocity,color){
 }
 
 function Player(num,color,enabled){
-	var SIZE = 500;
+	var SIZE = 800;
 	this.color = color;
 	this.position = new THREE.Vector2(0,0);
 	if (enabled === undefined)
