@@ -1,7 +1,7 @@
 var scene, camera, renderer;
 var geometry, material, mesh;
-var SKYBOX_MAX_RADIUS = 40000;
-var MAX_BOUND = 4000;
+var SKYBOX_MAX_RADIUS = 20000;
+var MAX_BOUND = 2000;
 var PRINT_LOGS = false;
 var ROTATION_STEP = 0.05;
 var rotation_intermediate; //used for smooth camera rotation
