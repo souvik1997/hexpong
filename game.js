@@ -35,7 +35,21 @@ $(document).ready(function()
 
 function get_random_color()
 {
-	return Math.round(Math.random() * 0xffffff);
+	var palette = [
+		0x95FE03,
+		0x3BAEE0,
+		0x9C5EDB,
+		0xE85EC3,
+		0xF8345A,
+		0xE2704B,
+		0xFCB227,
+		0xCFFF37,
+		0x37FF81,
+		0x4A00B4,
+		0xB4003C,
+		0x1CC095
+	]
+	return palette[Math.round(Math.random()*palette.length)];
 }
 
 function log()
