@@ -6,11 +6,11 @@ var PRINT_LOGS = false;
 var ROTATION_STEP = 0.05;
 var rotation_intermediate; //used for smooth camera rotation
 var objects = [
-				new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, -6, 4), 0xffffff), 
-				new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(2, 9, -4), 0xffffff),
-				new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-3, -2, -8), 0xffffff),
-				new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-10, -3, 1), 0xffffff),
-			];
+	new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, -6, 4), 0xffffff),
+	new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(2, 9, -4), 0xffffff),
+	new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-3, -2, -8), 0xffffff),
+	new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-10, -3, 1), 0xffffff),
+];
 var players = [new Player(0, get_random_color(), true, true), new Player(1, get_random_color(), true, true), new Player(2, get_random_color(), true, true), new Player(3, get_random_color(), true, true), new Player(4, get_random_color(), true, true), new Player(5, get_random_color(), true, true)];
 var current_focused_player = 0;
 var PLAYER_ACCEL_CONSTANT = 8;
@@ -443,28 +443,28 @@ function Player(num, color, enabled, ai)
 	this.stop_x_ai = function()
 	{
 		return function(self)
-			{
-				self.stop_x();
-			};
+		{
+			self.stop_x();
+		};
 	}
 	this.stop_y_ai = function()
 	{
 		return function(self)
-			{
-				self.stop_y();
-			};
+		{
+			self.stop_y();
+		};
 	}
 	this.ai_exec = function(instructions)
 	{
 		if (this.ai)
 		{
-			instructions.sort(function(a,b)
+			instructions.sort(function(a, b)
 			{
-				return b[0]-a[0]; //reverse sort
+				return b[0] - a[0]; //reverse sort
 			});
 			instructions[0][1](this);
 			instructions[0][2](this);
-		}		
+		}
 	}
 	this.ai_intent = function(ball)
 	{
@@ -675,7 +675,6 @@ function init()
 	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, SKYBOX_MAX_RADIUS * 2);
 	camera.position.z = 1000;
 	var camera_positions = [
-		[new THREE.Vector3(0, 0, 0), 0xffffff],
 		[new THREE.Vector3(-MAX_BOUND, 0, 0), players[0].color],
 		[new THREE.Vector3(-MAX_BOUND, MAX_BOUND / 2, 0), players[0].color],
 		[new THREE.Vector3(-MAX_BOUND, -MAX_BOUND / 2, 0), players[0].color],
@@ -709,7 +708,7 @@ function init()
 	];
 	for (pos in camera_positions)
 	{
-		var center = new THREE.PointLight(camera_positions[pos][1], 3, MAX_BOUND * 3 / 4);
+		var center = new THREE.PointLight(camera_positions[pos][1], 3, MAX_BOUND);
 		center.position.set(camera_positions[pos][0].x, camera_positions[pos][0].y, camera_positions[pos][0].z);
 		scene.add(center);
 	}
