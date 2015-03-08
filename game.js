@@ -5,8 +5,13 @@ var MAX_BOUND = 2000;
 var PRINT_LOGS = false;
 var ROTATION_STEP = 0.05;
 var rotation_intermediate; //used for smooth camera rotation
-var objects = [new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, -6, 4), 0xffffff),new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(2, 9, -4), 0xffffff)];
-var players = [new Player(0, get_random_color()), new Player(1, get_random_color(), true, true), new Player(2, get_random_color(), true, true), new Player(3, get_random_color(), true, true), new Player(4, get_random_color(), true, true), new Player(5, get_random_color(), true, true)];
+var objects = [
+				new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, -6, 4), 0xffffff), 
+				new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(2, 9, -4), 0xffffff),
+				new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-3, -2, -8), 0xffffff),
+				new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-10, -3, 1), 0xffffff),
+			];
+var players = [new Player(0, get_random_color(), true, true), new Player(1, get_random_color(), true, true), new Player(2, get_random_color(), true, true), new Player(3, get_random_color(), true, true), new Player(4, get_random_color(), true, true), new Player(5, get_random_color(), true, true)];
 var current_focused_player = 0;
 var PLAYER_ACCEL_CONSTANT = 8;
 var key_controls = {
@@ -62,8 +67,8 @@ function log()
 function Ball(position, velocity, color)
 {
 	var RADIUS = 100;
-	var STICKINESS = 0.2;
-	var BOUNCINESS = 1.001;
+	var STICKINESS = 0.03;
+	var BOUNCINESS = 1.0001;
 	this.color = color;
 	this.position = position;
 	this.position0 = position.clone();
@@ -489,7 +494,7 @@ function Player(num, color, enabled, ai)
 						instructions[1] = this.move_right_ai();
 					else if (ball.position.z > -this.position.x)
 						instructions[1] = this.move_left_ai();
-					else if (ball.position.z == this.position.x)
+					else if (ball.position.z == -this.position.x)
 						instructions[1] = this.stop_x_ai();
 					if (ball.position.y > this.position.y)
 						instructions[2] = this.move_up_ai();
@@ -519,7 +524,7 @@ function Player(num, color, enabled, ai)
 						instructions[2] = this.move_up_ai();
 					else if (ball.position.z > -this.position.y)
 						instructions[2] = this.move_down_ai();
-					else if (ball.position.z == this.position.y)
+					else if (ball.position.z == -this.position.y)
 						instructions[2] = this.stop_y_ai();
 					if (ball.position.x > this.position.x)
 						instructions[1] = this.move_right_ai();
@@ -555,7 +560,7 @@ function Player(num, color, enabled, ai)
 						instructions[1] = this.move_right_ai();
 					else if (ball.position.x > -this.position.x)
 						instructions[1] = this.move_left_ai();
-					else if (ball.position.x == this.position.x)
+					else if (ball.position.x == -this.position.x)
 						instructions[1] = this.stop_x_ai();
 					break;
 			}
@@ -638,19 +643,23 @@ function bind_keys()
 		switch (e.which)
 		{
 			case 37: // left
-				players[current_focused_player].stop();
+				if (!players[current_focused_player].ai)
+					players[current_focused_player].stop();
 				key_controls.left = false;
 				break;
 			case 38: // up
-				players[current_focused_player].stop();
+				if (!players[current_focused_player].ai)
+					players[current_focused_player].stop();
 				key_controls.up = false;
 				break;
 			case 39: // right
-				players[current_focused_player].stop();
+				if (!players[current_focused_player].ai)
+					players[current_focused_player].stop();
 				key_controls.right = false;
 				break;
 			case 40: // down
-				players[current_focused_player].stop();
+				if (!players[current_focused_player].ai)
+					players[current_focused_player].stop();
 				key_controls.down = false;
 				break;
 			default:
@@ -791,13 +800,13 @@ function animate()
 		players[player].ai_exec(instructions);
 		players[player].update();
 	}
-	if (key_controls.left)
+	if (key_controls.left && !players[current_focused_player].ai)
 		players[current_focused_player].accelerate(new THREE.Vector2(-PLAYER_ACCEL_CONSTANT, 0));
-	if (key_controls.right)
+	if (key_controls.right && !players[current_focused_player].ai)
 		players[current_focused_player].accelerate(new THREE.Vector2(PLAYER_ACCEL_CONSTANT, 0));
-	if (key_controls.up)
+	if (key_controls.up && !players[current_focused_player].ai)
 		players[current_focused_player].accelerate(new THREE.Vector2(0, PLAYER_ACCEL_CONSTANT));
-	if (key_controls.down)
+	if (key_controls.down && !players[current_focused_player].ai)
 		players[current_focused_player].accelerate(new THREE.Vector2(0, -PLAYER_ACCEL_CONSTANT));
 	if (rotation_intermediate !== undefined)
 	{
