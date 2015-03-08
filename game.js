@@ -251,23 +251,37 @@ function bind_keys()
 		switch(e.which) {
 			case 48:
 				current_focused_player = 0;
+				zoom_to(0);
 				break;
 			case 49:
 				current_focused_player = 1;
+				zoom_to(1);
 				break;
 			case 50:
 				current_focused_player = 2;
+				zoom_to(2);
 				break;
 			case 51:
 				current_focused_player = 3;
+				zoom_to(3);
 				break;
 			case 52:
 				current_focused_player = 4;
+				zoom_to(4);
 				break;
 			case 53:
 				current_focused_player = 5;
+				zoom_to(5);
 				break;
-
+			case 8: //backspace
+				zoom_to(current_focused_player);
+				break;
+			case 187:
+				controls.dollyIn(1.1);
+				break;
+			case 189:
+				controls.dollyOut(1.1);
+				break;
 			case 37: // left
 				key_controls.left = true;
 				break;
@@ -399,6 +413,14 @@ function animate() {
 			diff_long = -(rotation_intermediate[1] - cur_pos[1] - Math.PI * 2);
 		else
 			diff_long = rotation_intermediate[1] - cur_pos[1];
+		if (rotation_intermediate[1] == 0)
+		{
+			if (Math.abs(Math.PI*2 - cur_pos[1]) > Math.abs(Math.PI*2 - cur_pos[1] + Math.PI * 2)) //find the shortest path
+				diff_long2 = -(Math.PI*2 - cur_pos[1] - Math.PI * 2);
+			else
+				diff_long2 = Math.PI*2 - cur_pos[1];
+			diff_long = diff_long < diff_long2 ? diff_long : diff_long2;
+		}
 		log(diff_lat,diff_long);
 		if (Math.abs(diff_lat) > 0.01)
 		{
