@@ -1,7 +1,7 @@
 var scene, camera, renderer;
 var geometry, material, mesh;
-var SKYBOX_MAX_RADIUS = 20000;
-var MAX_BOUND = 2000;
+var SKYBOX_MAX_RADIUS = 40000;
+var MAX_BOUND = 4000;
 var PRINT_LOGS = false;
 var ROTATION_STEP = 0.05;
 var rotation_intermediate; //used for smooth camera rotation
@@ -471,9 +471,22 @@ function init()
 	scene = new THREE.Scene();
 	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, SKYBOX_MAX_RADIUS * 2);
 	camera.position.z = 1000;
-	var central_light = new THREE.PointLight(0xffffff, 1, SKYBOX_MAX_RADIUS);
-	central_light.position.set(0, 0, 0);
-	scene.add(central_light);
+	var camera_positions = [
+		new THREE.Vector3(0,0,0),
+		new THREE.Vector3(-MAX_BOUND,0,0),
+		new THREE.Vector3(MAX_BOUND,0,0),
+		new THREE.Vector3(0,-MAX_BOUND,0),
+		new THREE.Vector3(0,MAX_BOUND,0),
+		new THREE.Vector3(0,0,MAX_BOUND),
+		new THREE.Vector3(0,0,-MAX_BOUND)
+	]
+
+	for (pos in camera_positions)
+	{
+		var l = new THREE.PointLight(0xffffff, 1, SKYBOX_MAX_RADIUS);
+		l.position.set(camera_positions[pos].x,camera_positions[pos].y,camera_positions[pos].z);
+		scene.add(l);
+	}
 	renderer = new THREE.WebGLRenderer();
 	renderer.autoClear = true;
 	renderer.setSize(window.innerWidth, window.innerHeight);
