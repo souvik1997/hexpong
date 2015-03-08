@@ -5,7 +5,7 @@ var MAX_BOUND = 4000;
 var PRINT_LOGS = false;
 var ROTATION_STEP = 0.05;
 var rotation_intermediate; //used for smooth camera rotation
-var objects = [new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, -6, 4), get_random_color())];
+var objects = [new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, -6, 4), 0xffffff)];
 var players = [new Player(0, get_random_color(), false), new Player(1, get_random_color()), new Player(2, get_random_color()), new Player(3, get_random_color()), new Player(4, get_random_color()), new Player(5, get_random_color())];
 var current_focused_player = 0;
 var PLAYER_ACCEL_CONSTANT = 8;
@@ -47,7 +47,7 @@ function log()
 
 function Ball(position, velocity, color)
 {
-	var RADIUS = 50;
+	var RADIUS = 100;
 	var STICKINESS = 0.2;
 	var BOUNCINESS = 1.1;
 	this.color = color;
@@ -86,8 +86,8 @@ function Ball(position, velocity, color)
 				{
 					if (checkCollisions(this.mesh, [players[1].mesh]))
 					{
-						// +x → +z, +y → +y
-						this.velocity.z += STICKINESS * players[1].velocity.x;
+						// -x → +z, +y → +y
+						this.velocity.z += -STICKINESS * players[1].velocity.x;
 						this.velocity.y += STICKINESS * players[1].velocity.y;
 						this.velocity.x *= BOUNCINESS;
 						this.velocity.y *= BOUNCINESS;
@@ -107,8 +107,8 @@ function Ball(position, velocity, color)
 				{
 					if (checkCollisions(this.mesh, [players[0].mesh]))
 					{
-						// +x → -z, +y → +y
-						this.velocity.z += -STICKINESS * players[0].velocity.x;
+						// +x → +z, +y → +y
+						this.velocity.z += STICKINESS * players[0].velocity.x;
 						this.velocity.y += STICKINESS * players[0].velocity.y;
 						this.velocity.x *= BOUNCINESS;
 						this.velocity.y *= BOUNCINESS;
@@ -472,20 +472,50 @@ function init()
 	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, SKYBOX_MAX_RADIUS * 2);
 	camera.position.z = 1000;
 	var camera_positions = [
-		new THREE.Vector3(0,0,0),
-		new THREE.Vector3(-MAX_BOUND,0,0),
-		new THREE.Vector3(MAX_BOUND,0,0),
-		new THREE.Vector3(0,-MAX_BOUND,0),
-		new THREE.Vector3(0,MAX_BOUND,0),
-		new THREE.Vector3(0,0,MAX_BOUND),
-		new THREE.Vector3(0,0,-MAX_BOUND)
-	]
+		[new THREE.Vector3(0,0,0),0xffffff],
+		[new THREE.Vector3(-MAX_BOUND,0,0),players[0].color],
+		[new THREE.Vector3(-MAX_BOUND,MAX_BOUND/2,0),players[0].color],
+		[new THREE.Vector3(-MAX_BOUND,-MAX_BOUND/2,0),players[0].color],
+		[new THREE.Vector3(-MAX_BOUND,0,MAX_BOUND/2),players[0].color],
+		[new THREE.Vector3(-MAX_BOUND,0,-MAX_BOUND/2),players[0].color],
+
+		[new THREE.Vector3(MAX_BOUND,0,0),players[1].color],
+		[new THREE.Vector3(MAX_BOUND,MAX_BOUND/2,0),players[1].color],
+		[new THREE.Vector3(MAX_BOUND,-MAX_BOUND/2,0),players[1].color],
+		[new THREE.Vector3(MAX_BOUND,0,MAX_BOUND/2),players[1].color],
+		[new THREE.Vector3(MAX_BOUND,0,-MAX_BOUND/2),players[1].color],
+
+		[new THREE.Vector3(0,-MAX_BOUND,0),players[2].color],
+		[new THREE.Vector3(MAX_BOUND/2,-MAX_BOUND,0),players[2].color],
+		[new THREE.Vector3(-MAX_BOUND/2,-MAX_BOUND,0),players[2].color],
+		[new THREE.Vector3(0,-MAX_BOUND,MAX_BOUND/2),players[2].color],
+		[new THREE.Vector3(0,-MAX_BOUND,-MAX_BOUND/2),players[2].color],
+
+		[new THREE.Vector3(0,MAX_BOUND,0),players[3].color],
+		[new THREE.Vector3(MAX_BOUND/2,MAX_BOUND,0),players[3].color],
+		[new THREE.Vector3(-MAX_BOUND/2,MAX_BOUND,0),players[3].color],
+		[new THREE.Vector3(0,MAX_BOUND,MAX_BOUND/2),players[3].color],
+		[new THREE.Vector3(0,MAX_BOUND,-MAX_BOUND/2),players[3].color],
+
+		[new THREE.Vector3(0,0,MAX_BOUND),players[4].color],
+		[new THREE.Vector3(MAX_BOUND/2,0,MAX_BOUND),players[4].color],
+		[new THREE.Vector3(-MAX_BOUND/2,0,MAX_BOUND),players[4].color],
+		[new THREE.Vector3(0,MAX_BOUND/2,MAX_BOUND),players[4].color],
+		[new THREE.Vector3(0,-MAX_BOUND/2,MAX_BOUND),players[4].color],
+
+		[new THREE.Vector3(0,0,-MAX_BOUND),players[5].color],
+		[new THREE.Vector3(MAX_BOUND/2,0,-MAX_BOUND),players[5].color],
+		[new THREE.Vector3(-MAX_BOUND/2,0,-MAX_BOUND),players[5].color],
+		[new THREE.Vector3(0,MAX_BOUND/2,-MAX_BOUND),players[5].color],
+		[new THREE.Vector3(0,-MAX_BOUND/2,-MAX_BOUND),players[5].color]
+	];
 
 	for (pos in camera_positions)
 	{
-		var l = new THREE.PointLight(0xffffff, 1, SKYBOX_MAX_RADIUS);
-		l.position.set(camera_positions[pos].x,camera_positions[pos].y,camera_positions[pos].z);
-		scene.add(l);
+		var center = new THREE.PointLight(camera_positions[pos][1], 3, MAX_BOUND*3/4);
+		center.position.set(camera_positions[pos][0].x,camera_positions[pos][0].y,camera_positions[pos][0].z);
+		scene.add(center);
+
 	}
 	renderer = new THREE.WebGLRenderer();
 	renderer.autoClear = true;
