@@ -6,7 +6,7 @@ var PRINT_LOGS = false;
 var ROTATION_STEP = 0.05;
 var rotation_intermediate; //used for smooth camera rotation
 var objects = [new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, -6, 4), 0xffffff)];
-var players = [new Player(0, get_random_color(), false), new Player(1, get_random_color()), new Player(2, get_random_color()), new Player(3, get_random_color()), new Player(4, get_random_color()), new Player(5, get_random_color())];
+var players = [new Player(0, get_random_color(), true, true), new Player(1, get_random_color(), true, true), new Player(2, get_random_color(), true, true), new Player(3, get_random_color(), true, true), new Player(4, get_random_color(), true, true), new Player(5, get_random_color(), true, true)];
 var current_focused_player = 0;
 var PLAYER_ACCEL_CONSTANT = 8;
 var key_controls = {
@@ -229,12 +229,12 @@ function Ball(position, velocity, color)
 	}
 }
 
-function Player(num, color, enabled)
+function Player(num, color, enabled, ai)
 {
 	var SIZE = 800;
 	this.color = color;
 	this.position = new THREE.Vector2(0, 0);
-	this.velocity = new THREE.Vector2(0, 0);
+	this.velocity = new THREE.Vector2(0, 0);	
 	if (enabled === undefined)
 	{
 		this.enabled = true;
@@ -243,6 +243,15 @@ function Player(num, color, enabled)
 	{
 		this.enabled = enabled;
 	}
+	if (ai === undefined)
+	{
+		this.ai = false;
+	}
+	else
+	{
+		this.ai = ai;
+	}
+	this.num = num;
 	this.mesh = new THREE.Mesh(
 			new THREE.BoxGeometry(SIZE, SIZE, SIZE / 8),
 			new THREE.MeshBasicMaterial(
@@ -315,7 +324,7 @@ function Player(num, color, enabled)
 		{
 			this.position.y += step;
 		}
-		switch (num)
+		switch (this.num)
 		{
 			case 0:
 				this.mesh.translateY(step);
@@ -355,7 +364,7 @@ function Player(num, color, enabled)
 		{
 			this.position.x += step;
 		}
-		switch (num)
+		switch (this.num)
 		{
 			case 0:
 				this.mesh.translateX(step);
@@ -378,9 +387,129 @@ function Player(num, color, enabled)
 		}
 	}
 	this.update = function()
-	{
+	{		
 		this.moveX(this.velocity.x);
-		this.moveY(this.velocity.y)
+		this.moveY(this.velocity.y);
+	}
+	this.move_right_ai = function()
+	{
+		if (this.velocity.x < 0)
+			this.stop();
+		this.accelerate(new THREE.Vector2(PLAYER_ACCEL_CONSTANT,0));
+	}
+	this.move_left_ai = function()
+	{
+		if (this.velocity.x > 0)
+			this.stop();
+		this.accelerate(new THREE.Vector2(-PLAYER_ACCEL_CONSTANT,0));
+	}
+	this.move_up_ai = function()
+	{
+		if (this.velocity.y < 0)
+			this.stop();
+		this.accelerate(new THREE.Vector2(0,PLAYER_ACCEL_CONSTANT));
+	}
+	this.move_down_ai = function()
+	{
+		if (this.velocity.y > 0)
+			this.stop();
+		this.accelerate(new THREE.Vector2(0,-PLAYER_ACCEL_CONSTANT));
+	}
+	this.update_if_ai = function(ball)
+	{
+		
+
+		if (this.ai)
+		{
+			switch (this.num)
+			{
+				case 0:
+					if (ball.position.z > this.position.x)
+						this.move_right_ai();
+					else if (ball.position.z < this.position.x)
+						this.move_left_ai();
+					else if (ball.position.z == this.position.x)
+						this.stop();
+					if (ball.position.y > this.position.y)
+						this.move_up_ai();
+					else if (ball.position.y < this.position.y)
+						this.move_down_ai();
+					else if (ball.position.y == this.position.y)
+						this.stop();
+					break;
+				case 1:
+					if (ball.position.z < this.position.x)
+						this.move_right_ai();
+					else if (ball.position.z > this.position.x)
+						this.move_left_ai();
+					else if (ball.position.z == this.position.x)
+						this.stop();
+					if (ball.position.y > this.position.y)
+						this.move_up_ai();
+					else if (ball.position.y < this.position.y)
+						this.move_down_ai();
+					else if (ball.position.y == this.position.y)
+						this.stop();
+					break;
+				case 2:
+					if (ball.position.z > this.position.y)
+						this.move_up_ai();
+					else if (ball.position.z < this.position.y)
+						this.move_down_ai();
+					else if (ball.position.z == this.position.y)
+						this.stop();
+					if (ball.position.x > this.position.x)
+						this.move_right_ai();
+					else if (ball.position.x < this.position.x)
+						this.move_left_ai();
+					else if (ball.position.x == this.position.x)
+						this.stop();
+					break;
+				case 3:
+					if (ball.position.z < this.position.y)
+						this.move_up_ai();
+					else if (ball.position.z > this.position.y)
+						this.move_down_ai();
+					else if (ball.position.z == this.position.y)
+						this.stop();
+					if (ball.position.x > this.position.x)
+						this.move_right_ai();
+					else if (ball.position.x < this.position.x)
+						this.move_left_ai();
+					else if (ball.position.x == this.position.x)
+						this.stop();
+					break;
+				case 4:
+					if (ball.position.y > this.position.y)
+						this.move_up_ai();
+					else if (ball.position.y < this.position.y)
+						this.move_down_ai();
+					else if (ball.position.y == this.position.y)
+						this.stop();
+					if (ball.position.x > this.position.x)
+						this.move_right_ai();
+					else if (ball.position.x < this.position.x)
+						this.move_left_ai();
+					else if (ball.position.x == this.position.x)
+						this.stop();
+					break;
+				case 5:
+					if (ball.position.y > this.position.y)
+						this.move_up_ai();
+					else if (ball.position.y < this.position.y)
+						this.move_down_ai();
+					else if (ball.position.y == this.position.y)
+						this.stop();
+					if (ball.position.x < this.position.x)
+						this.move_right_ai();
+					else if (ball.position.x > this.position.x)
+						this.move_left_ai();
+					else if (ball.position.x == this.position.x)
+						this.stop();
+					break;
+					
+			}
+		}
 	}
 }
 
@@ -611,7 +740,11 @@ function animate()
 	for (var obj in objects)
 		objects[obj].update()
 	for (var player in players)
+	{
+		for (var obj in objects)
+			players[player].update_if_ai(objects[obj]);
 		players[player].update();
+	}
 	if (key_controls.left)
 		players[current_focused_player].accelerate(new THREE.Vector2(-PLAYER_ACCEL_CONSTANT, 0));
 	if (key_controls.right)
