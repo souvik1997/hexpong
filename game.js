@@ -5,7 +5,7 @@ var MAX_BOUND = 2000;
 var PRINT_LOGS = false;
 var ROTATION_STEP = 0.05;
 var rotation_intermediate; //used for smooth camera rotation
-var objects = [new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, -6, 4), 0xffffff)];
+var objects = [new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, -6, 4), 0xffffff),new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(2, 9, -4), 0xffffff)];
 var players = [new Player(0, get_random_color()), new Player(1, get_random_color(), true, true), new Player(2, get_random_color(), true, true), new Player(3, get_random_color(), true, true), new Player(4, get_random_color(), true, true), new Player(5, get_random_color(), true, true)];
 var current_focused_player = 0;
 var PLAYER_ACCEL_CONSTANT = 8;
@@ -303,7 +303,15 @@ function Player(num, color, enabled, ai)
 		}
 	this.stop = function()
 	{
+		this.stop_x();
+		this.stop_y();
+	}
+	this.stop_x = function()
+	{
 		this.velocity.x = 0;
+	}
+	this.stop_y = function()
+	{
 		this.velocity.y = 0;
 	}
 	this.moveY = function(step)
@@ -393,119 +401,165 @@ function Player(num, color, enabled, ai)
 	}
 	this.move_right_ai = function()
 	{
-		if (this.velocity.x < 0)
-			this.stop();
-		this.accelerate(new THREE.Vector2(PLAYER_ACCEL_CONSTANT, 0));
+		return function(self)
+		{
+			if (self.velocity.x < 0)
+				self.stop_x();
+			self.accelerate(new THREE.Vector2(PLAYER_ACCEL_CONSTANT, 0));
+		};
 	}
 	this.move_left_ai = function()
 	{
-		if (this.velocity.x > 0)
-			this.stop();
-		this.accelerate(new THREE.Vector2(-PLAYER_ACCEL_CONSTANT, 0));
+		return function(self)
+		{
+			if (self.velocity.x > 0)
+				self.stop_x();
+			self.accelerate(new THREE.Vector2(-PLAYER_ACCEL_CONSTANT, 0));
+		};
 	}
 	this.move_up_ai = function()
 	{
-		if (this.velocity.y < 0)
-			this.stop();
-		this.accelerate(new THREE.Vector2(0, PLAYER_ACCEL_CONSTANT));
+		return function(self)
+		{
+			if (self.velocity.y < 0)
+				self.stop_y();
+			self.accelerate(new THREE.Vector2(0, PLAYER_ACCEL_CONSTANT));
+		};
 	}
 	this.move_down_ai = function()
 	{
-		if (this.velocity.y > 0)
-			this.stop();
-		this.accelerate(new THREE.Vector2(0, -PLAYER_ACCEL_CONSTANT));
+		return function(self)
+		{
+			if (self.velocity.y > 0)
+				self.stop_y();
+			self.accelerate(new THREE.Vector2(0, -PLAYER_ACCEL_CONSTANT));
+		};
 	}
-	this.update_if_ai = function(ball)
+	this.stop_x_ai = function()
+	{
+		return function(self)
+			{
+				self.stop_x();
+			};
+	}
+	this.stop_y_ai = function()
+	{
+		return function(self)
+			{
+				self.stop_y();
+			};
+	}
+	this.ai_exec = function(instructions)
 	{
 		if (this.ai)
 		{
+			instructions.sort(function(a,b)
+			{
+				return b[0]-a[0]; //reverse sort
+			});
+			instructions[0][1](this);
+			instructions[0][2](this);
+		}		
+	}
+	this.ai_intent = function(ball)
+	{
+		if (this.ai)
+		{
+			var instructions = [];
 			switch (this.num)
 			{
 				case 0:
+					instructions[0] = -ball.position.x;
 					if (ball.position.z > this.position.x)
-						this.move_right_ai();
+						instructions[1] = this.move_right_ai();
 					else if (ball.position.z < this.position.x)
-						this.move_left_ai();
+						instructions[1] = this.move_left_ai();
 					else if (ball.position.z == this.position.x)
-						this.stop();
+						instructions[1] = this.stop_x_ai();
 					if (ball.position.y > this.position.y)
-						this.move_up_ai();
+						instructions[2] = this.move_up_ai();
 					else if (ball.position.y < this.position.y)
-						this.move_down_ai();
+						instructions[2] = this.move_down_ai();
 					else if (ball.position.y == this.position.y)
-						this.stop();
+						instructions[2] = this.stop_y_ai();
 					break;
 				case 1:
+					instructions[0] = ball.position.x;
 					if (ball.position.z < -this.position.x)
-						this.move_right_ai();
+						instructions[1] = this.move_right_ai();
 					else if (ball.position.z > -this.position.x)
-						this.move_left_ai();
+						instructions[1] = this.move_left_ai();
 					else if (ball.position.z == this.position.x)
-						this.stop();
+						instructions[1] = this.stop_x_ai();
 					if (ball.position.y > this.position.y)
-						this.move_up_ai();
+						instructions[2] = this.move_up_ai();
 					else if (ball.position.y < this.position.y)
-						this.move_down_ai();
+						instructions[2] = this.move_down_ai();
 					else if (ball.position.y == this.position.y)
-						this.stop();
+						instructions[2] = this.stop_y_ai();
 					break;
 				case 2:
+					instructions[0] = -ball.position.y;
 					if (ball.position.z > this.position.y)
-						this.move_up_ai();
+						instructions[2] = this.move_up_ai();
 					else if (ball.position.z < this.position.y)
-						this.move_down_ai();
+						instructions[2] = this.move_down_ai();
 					else if (ball.position.z == this.position.y)
-						this.stop();
+						instructions[2] = this.stop_y_ai();
 					if (ball.position.x > this.position.x)
-						this.move_right_ai();
+						instructions[1] = this.move_right_ai();
 					else if (ball.position.x < this.position.x)
-						this.move_left_ai();
+						instructions[1] = this.move_left_ai();
 					else if (ball.position.x == this.position.x)
-						this.stop();
+						instructions[1] = this.stop_x_ai();
 					break;
 				case 3:
+					instructions[0] = ball.position.y;
 					if (ball.position.z < -this.position.y)
-						this.move_up_ai();
+						instructions[2] = this.move_up_ai();
 					else if (ball.position.z > -this.position.y)
-						this.move_down_ai();
+						instructions[2] = this.move_down_ai();
 					else if (ball.position.z == this.position.y)
-						this.stop();
+						instructions[2] = this.stop_y_ai();
 					if (ball.position.x > this.position.x)
-						this.move_right_ai();
+						instructions[1] = this.move_right_ai();
 					else if (ball.position.x < this.position.x)
-						this.move_left_ai();
+						instructions[1] = this.move_left_ai();
 					else if (ball.position.x == this.position.x)
-						this.stop();
+						instructions[1] = this.stop_x_ai();
 					break;
 				case 4:
+					instructions[0] = ball.position.z;
 					if (ball.position.y > this.position.y)
-						this.move_up_ai();
+						instructions[2] = this.move_up_ai();
 					else if (ball.position.y < this.position.y)
-						this.move_down_ai();
+						instructions[2] = this.move_down_ai();
 					else if (ball.position.y == this.position.y)
-						this.stop();
+						instructions[2] = this.stop_y_ai();
 					if (ball.position.x > this.position.x)
-						this.move_right_ai();
+						instructions[1] = this.move_right_ai();
 					else if (ball.position.x < this.position.x)
-						this.move_left_ai();
+						instructions[1] = this.move_left_ai();
 					else if (ball.position.x == this.position.x)
-						this.stop();
+						instructions[1] = this.stop_x_ai();
 					break;
 				case 5:
+					instructions[0] = -ball.position.z;
 					if (ball.position.y > this.position.y)
-						this.move_up_ai();
+						instructions[2] = this.move_up_ai();
 					else if (ball.position.y < this.position.y)
-						this.move_down_ai();
+						instructions[2] = this.move_down_ai();
 					else if (ball.position.y == this.position.y)
-						this.stop();
+						instructions[2] = this.stop_y_ai();
 					if (ball.position.x < -this.position.x)
-						this.move_right_ai();
+						instructions[1] = this.move_right_ai();
 					else if (ball.position.x > -this.position.x)
-						this.move_left_ai();
+						instructions[1] = this.move_left_ai();
 					else if (ball.position.x == this.position.x)
-						this.stop();
+						instructions[1] = this.stop_x_ai();
 					break;
 			}
+			return instructions;
 		}
 	}
 }
@@ -731,8 +785,10 @@ function animate()
 		objects[obj].update()
 	for (var player in players)
 	{
+		instructions = []
 		for (var obj in objects)
-			players[player].update_if_ai(objects[obj]);
+			instructions.push(players[player].ai_intent(objects[obj]));
+		players[player].ai_exec(instructions);
 		players[player].update();
 	}
 	if (key_controls.left)
