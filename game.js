@@ -1,7 +1,11 @@
 var scene, camera, renderer;
 var geometry, material, mesh;
-var SKYBOX_MAX_RADIUS = 7000;
+var SKYBOX_MAX_RADIUS = 20000;
 var MAX_BOUND = 2000;
+var PRINT_LOGS = false;
+
+var ROTATION_STEP = 0.05;
+var rotation_intermediate = undefined; //used for smooth camera rotation
 
 var objects = [new Ball(new THREE.Vector3(0,0,0), new THREE.Vector3(10,-6,4), get_random_color())];
 var players = [new Player(0,get_random_color(),false),new Player(1,get_random_color()),new Player(2,get_random_color()),new Player(3,get_random_color()),new Player(4,get_random_color()),new Player(5,get_random_color())];
@@ -19,16 +23,26 @@ $(document).ready(function()
 	for (var player in players)
 		if (players[player].enabled)
 			scene.add(players[player].mesh);
-	scene.add(new THREE.Mesh(
-		new THREE.BoxGeometry(MAX_BOUND*2,MAX_BOUND*2,MAX_BOUND*2,20,20),
-		new THREE.MeshBasicMaterial({color:0x0A0A0A, transparent: true, side: THREE.DoubleSide, opacity: 0.05, wireframe:true})));
+	bounding_cube = new THREE.BoxHelper(new THREE.Mesh(
+			new THREE.BoxGeometry(MAX_BOUND*2,MAX_BOUND*2,MAX_BOUND*2,2,2),
+			new THREE.LineBasicMaterial()));
+	bounding_cube.material.color.set(0x321087);
+	scene.add(bounding_cube);
+
 	animate();
-	console.log(objects[0])
+	log(objects[0])
 });
 
 function get_random_color()
 {
 	return Math.round(Math.random()*0xffffff);
+}
+
+function log()
+{
+	if (PRINT_LOGS)
+		for (var i = 0; i < arguments.length; i++)
+			console.log(arguments[i]);
 }
 
 function Ball(position,velocity,color){
@@ -49,7 +63,7 @@ function Ball(position,velocity,color){
 			this.position.x = MAX_BOUND;			
 			this.velocity.x *= -1;
 			if (players[1].enabled && !checkCollisions(this.mesh,[players[1].mesh]))
-				console.log("player 1 missed");
+				log("player 1 missed");
 
 		}
 		if (this.position.x <= -MAX_BOUND)
@@ -57,35 +71,35 @@ function Ball(position,velocity,color){
 			this.position.x = -MAX_BOUND;
 			this.velocity.x *= -1;
 			if (players[0].enabled && !checkCollisions(this.mesh,[players[0].mesh]))
-				console.log("player 0 missed");
+				log("player 0 missed");
 		}
 		if (this.position.y >= MAX_BOUND)
 		{
 			this.position.y = MAX_BOUND;
 			this.velocity.y *= -1;
 			if (players[3].enabled && !checkCollisions(this.mesh,[players[3].mesh]))
-				console.log("player 3 missed");;
+				log("player 3 missed");;
 		}
 		if (this.position.y <= -MAX_BOUND)
 		{
 			this.position.y = -MAX_BOUND;
 			this.velocity.y *= -1;
 			if (players[2].enabled && !checkCollisions(this.mesh,[players[2].mesh]))
-				console.log("player 2 missed");
+				log("player 2 missed");
 		}
 		if (this.position.z >= MAX_BOUND)
 		{
 			this.position.z = MAX_BOUND;
 			this.velocity.z *= -1;
 			if (players[4].enabled && !checkCollisions(this.mesh,[players[4].mesh]))
-				console.log("player 4 missed");
+				log("player 4 missed");
 		}
 		if (this.position.z <= -MAX_BOUND)
 		{
 			this.position.z = -MAX_BOUND;
 			this.velocity.z *= -1;
 			if (players[5].enabled && !checkCollisions(this.mesh,[players[5].mesh]))
-				console.log("player 5 missed");
+				log("player 5 missed");
 		}
 		this.mesh.translateX(position.x-this.mesh.position.x);
 		this.mesh.translateY(position.y-this.mesh.position.y);
@@ -170,7 +184,7 @@ function Player(num,color,enabled){
 				this.mesh.translateY(step);
 				break;
 			case 3:
-				this.mesh.translateX(step);
+				this.mesh.translateY(step);
 				break;
 			case 4:
 				this.mesh.translateX(step);
@@ -205,7 +219,7 @@ function Player(num,color,enabled){
 				this.mesh.translateX(step);
 				break;
 			case 3:
-				this.mesh.translateY(-step);
+				this.mesh.translateX(step);
 				break;
 			case 4:
 				this.mesh.translateY(-step);
@@ -216,6 +230,19 @@ function Player(num,color,enabled){
 		}		
 	}
 
+}
+
+function zoom_to(player) // player is a number
+{
+	target_angles = [
+		[0,Math.PI/2],
+		[0,Math.PI*3/2],
+		[-Math.PI/2,Math.PI],
+		[Math.PI/2,Math.PI],
+		[0,Math.PI],
+		[0,0]
+	]
+	rotation_intermediate = target_angles[player];
 }
 
 function bind_keys()
@@ -295,6 +322,25 @@ function init() {
 	$("body").append(renderer.domElement);
 
 }
+function get_lat_long()
+{
+	function radius(x,y,z){ return Math.sqrt(Math.pow(x,2)+Math.pow(y,2)) }
+	x=camera.getWorldPosition();
+	if (x.z > 0)
+	{
+		longitude = Math.atan(x.x/x.z) + Math.PI;	
+	}
+	else if (x.x <= 0)
+	{
+		longitude = Math.abs(Math.atan(x.x/x.z));
+	}
+	else if (x.x > 0)
+	{
+		longitude = Math.PI*2 - Math.abs(Math.atan(x.x/x.z));
+	}
+	latitude = Math.atan(x.y/radius(x.x,x.z));	
+	return [latitude,longitude];
+}
 function createSkyBox() {
 	var geometry = new THREE.SphereGeometry(SKYBOX_MAX_RADIUS,10,10);
 	var uniforms = {
@@ -325,7 +371,7 @@ function checkCollisions(mesh,collidableMeshList) // http://stackoverflow.com/qu
 		var collisionResults = ray.intersectObjects( collidableMeshList );
 		if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) 
 		{
-			console.log("collision")
+			log("collision")
 			return true;
 		}
 	}
@@ -336,7 +382,6 @@ function animate() {
 	requestAnimationFrame( animate );
 	for (var obj in objects)
 		objects[obj].update()
-	controls.update();
 	if (key_controls.left)
 		players[current_focused_player].moveX(-key_controls.step);
 	if (key_controls.right)
@@ -345,6 +390,34 @@ function animate() {
 		players[current_focused_player].moveY(key_controls.step);
 	if (key_controls.down)
 		players[current_focused_player].moveY(-key_controls.step);
+	if (rotation_intermediate !== undefined)
+	{
+		var cur_pos = get_lat_long();
+		var diff_lat = rotation_intermediate[0] - cur_pos[0];
+		var diff_long = 0;
+		if (Math.abs(rotation_intermediate[1] - cur_pos[1]) > Math.abs(rotation_intermediate[1] - cur_pos[1] + Math.PI * 2)) //find the shortest path
+			diff_long = -(rotation_intermediate[1] - cur_pos[1] - Math.PI * 2);
+		else
+			diff_long = rotation_intermediate[1] - cur_pos[1];
+		log(diff_lat,diff_long);
+		if (Math.abs(diff_lat) > 0.01)
+		{
+			if (Math.abs(diff_lat) < ROTATION_STEP)
+				controls.rotateUp(diff_lat);
+			else
+				controls.rotateUp(ROTATION_STEP * Math.abs(diff_lat)/diff_lat);
+		}
+		if (Math.abs(diff_long) > 0.01)
+		{
+			if (Math.abs(diff_long) < ROTATION_STEP)
+				controls.rotateLeft(-diff_long);
+			else
+				controls.rotateLeft(ROTATION_STEP * -Math.abs(diff_long)/diff_long);
+		}
+		if (Math.abs(diff_lat) < 0.01 && Math.abs(diff_long) < 0.01)
+			rotation_intermediate = undefined;
+	}
+	controls.update();
 	renderer.render( scene, camera );
 
 }
