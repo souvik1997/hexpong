@@ -63,7 +63,7 @@ function Ball(position, velocity, color)
 {
 	var RADIUS = 100;
 	var STICKINESS = 0.2;
-	var BOUNCINESS = 1.1;
+	var BOUNCINESS = 1.001;
 	this.color = color;
 	this.position = position;
 	this.position0 = position.clone();
@@ -438,9 +438,9 @@ function Player(num, color, enabled, ai)
 						this.stop();
 					break;
 				case 1:
-					if (ball.position.z < this.position.x)
+					if (ball.position.z < -this.position.x)
 						this.move_right_ai();
-					else if (ball.position.z > this.position.x)
+					else if (ball.position.z > -this.position.x)
 						this.move_left_ai();
 					else if (ball.position.z == this.position.x)
 						this.stop();
@@ -466,9 +466,9 @@ function Player(num, color, enabled, ai)
 						this.stop();
 					break;
 				case 3:
-					if (ball.position.z < this.position.y)
+					if (ball.position.z < -this.position.y)
 						this.move_up_ai();
-					else if (ball.position.z > this.position.y)
+					else if (ball.position.z > -this.position.y)
 						this.move_down_ai();
 					else if (ball.position.z == this.position.y)
 						this.stop();
@@ -500,9 +500,9 @@ function Player(num, color, enabled, ai)
 						this.move_down_ai();
 					else if (ball.position.y == this.position.y)
 						this.stop();
-					if (ball.position.x < this.position.x)
+					if (ball.position.x < -this.position.x)
 						this.move_right_ai();
-					else if (ball.position.x > this.position.x)
+					else if (ball.position.x > -this.position.x)
 						this.move_left_ai();
 					else if (ball.position.x == this.position.x)
 						this.stop();
