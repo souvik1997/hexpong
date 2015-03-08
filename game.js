@@ -2,7 +2,7 @@ var scene, camera, renderer;
 var geometry, material, mesh;
 var SKYBOX_MAX_RADIUS = 20000;
 var MAX_BOUND = 2000;
-var PRINT_LOGS = false;
+var PRINT_LOGS = true;
 
 var ROTATION_STEP = 0.05;
 var rotation_intermediate = undefined; //used for smooth camera rotation
@@ -11,7 +11,8 @@ var objects = [new Ball(new THREE.Vector3(0,0,0), new THREE.Vector3(10,-6,4), ge
 var players = [new Player(0,get_random_color(),false),new Player(1,get_random_color()),new Player(2,get_random_color()),new Player(3,get_random_color()),new Player(4,get_random_color()),new Player(5,get_random_color())];
 
 var current_focused_player = 0;
-var key_controls = {left:false, right:false, up:false, down:false, step:30}
+var PLAYER_ACCEL_CONSTANT = 8;
+var key_controls = {left:false, right:false, up:false, down:false}
 
 $(document).ready(function()
 {
@@ -30,7 +31,6 @@ $(document).ready(function()
 	scene.add(bounding_cube);
 
 	animate();
-	log(objects[0])
 });
 
 function get_random_color()
@@ -47,6 +47,7 @@ function log()
 
 function Ball(position,velocity,color){
 	var RADIUS = 50;
+	var STICKINESS = 0.2;
 	this.color = color;
 	this.position = position;
 	this.velocity = velocity;
@@ -62,44 +63,109 @@ function Ball(position,velocity,color){
 		{
 			this.position.x = MAX_BOUND;			
 			this.velocity.x *= -1;
-			if (players[1].enabled && !checkCollisions(this.mesh,[players[1].mesh]))
-				log("player 1 missed");
-
+			if (players[1].enabled) // player direction → world direction comments added
+			{
+				if (checkCollisions(this.mesh,[players[1].mesh]))
+				{
+					// +x → +z, +y → +y
+					this.velocity.z += STICKINESS * players[1].velocity.x;
+					this.velocity.y += STICKINESS * players[1].velocity.y;
+				}
+				else
+				{
+					log("player 1 missed");
+				}				
+			}
 		}
 		if (this.position.x <= -MAX_BOUND)
 		{
 			this.position.x = -MAX_BOUND;
 			this.velocity.x *= -1;
-			if (players[0].enabled && !checkCollisions(this.mesh,[players[0].mesh]))
-				log("player 0 missed");
+			if (players[0].enabled)
+			{
+				if (checkCollisions(this.mesh,[players[0].mesh]))
+				{
+					// +x → -z, +y → +y
+					this.velocity.z += -STICKINESS * players[0].velocity.x;
+					this.velocity.y += STICKINESS * players[0].velocity.y;
+				}
+				else
+				{
+					log("player 0 missed");	
+				}				
+			}
 		}
 		if (this.position.y >= MAX_BOUND)
 		{
 			this.position.y = MAX_BOUND;
 			this.velocity.y *= -1;
-			if (players[3].enabled && !checkCollisions(this.mesh,[players[3].mesh]))
-				log("player 3 missed");;
+			if (players[3].enabled)
+			{	
+				if (checkCollisions(this.mesh,[players[3].mesh]))
+				{
+					// -y → +z, +x → +x
+					this.velocity.x += STICKINESS * players[3].velocity.x;
+					this.velocity.z += -STICKINESS * players[3].velocity.y;
+				}
+				else
+				{
+					log("player 3 missed");
+				}
+			}
 		}
 		if (this.position.y <= -MAX_BOUND)
 		{
 			this.position.y = -MAX_BOUND;
 			this.velocity.y *= -1;
-			if (players[2].enabled && !checkCollisions(this.mesh,[players[2].mesh]))
-				log("player 2 missed");
+			if (players[2].enabled)
+			{	
+				if (checkCollisions(this.mesh,[players[2].mesh]))
+				{
+					// +y → +z, +x → +x
+					this.velocity.x += STICKINESS * players[2].velocity.x;
+					this.velocity.z += -STICKINESS * players[2].velocity.y;
+				}
+				else
+				{
+					log("player 2 missed");
+				}
+			}
 		}
 		if (this.position.z >= MAX_BOUND)
 		{
 			this.position.z = MAX_BOUND;
 			this.velocity.z *= -1;
-			if (players[4].enabled && !checkCollisions(this.mesh,[players[4].mesh]))
-				log("player 4 missed");
+			if (players[4].enabled)
+			{
+				if (checkCollisions(this.mesh,[players[4].mesh]))
+				{
+					// +x → +x, +y → +y
+					this.velocity.x += STICKINESS * players[4].velocity.x;
+					this.velocity.y += STICKINESS * players[4].velocity.y;
+				}
+				else
+				{
+					log("player 4 missed");
+				}
+			}
 		}
 		if (this.position.z <= -MAX_BOUND)
 		{
 			this.position.z = -MAX_BOUND;
 			this.velocity.z *= -1;
-			if (players[5].enabled && !checkCollisions(this.mesh,[players[5].mesh]))
-				log("player 5 missed");
+			if (players[5].enabled)
+			{
+				if (checkCollisions(this.mesh,[players[5].mesh]))
+				{
+					// +x → -x, +y → +y
+					this.velocity.x += -STICKINESS * players[5].velocity.x;
+					this.velocity.y += STICKINESS * players[5].velocity.y;
+				}
+				else
+				{
+					log("player 5 missed");	
+				}				
+			}
 		}
 		this.mesh.translateX(position.x-this.mesh.position.x);
 		this.mesh.translateY(position.y-this.mesh.position.y);
@@ -111,6 +177,7 @@ function Player(num,color,enabled){
 	var SIZE = 800;
 	this.color = color;
 	this.position = new THREE.Vector2(0,0);
+	this.velocity = new THREE.Vector2(0,0);
 	if (enabled === undefined)
 	{
 		this.enabled = true;
@@ -156,17 +223,29 @@ function Player(num,color,enabled){
 			this.mesh.translateZ(-MAX_BOUND);
 			break;
 	}
+	this.accelerate = function(acc_vec) //THREE.Vector2
+	{
+		this.velocity.x += acc_vec.x;
+		this.velocity.y += acc_vec.y;
+	}
+	this.stop = function()
+	{
+		this.velocity.x = 0;
+		this.velocity.y = 0;
+	}
 	this.moveY = function(step){
 		
 		if (this.position.y + step > MAX_BOUND-SIZE/2)
 		{
 			step = MAX_BOUND-SIZE/2 - this.position.y;
 			this.position.y = MAX_BOUND-SIZE/2;
+			this.velocity.y = 0;
 		}
 		else if (this.position.y + step < -MAX_BOUND+SIZE/2)
 		{
 			step = -MAX_BOUND+SIZE/2 - this.position.y;
 			this.position.y = -MAX_BOUND+SIZE/2;
+			this.velocity.y = 0;
 		}
 		else 
 		{
@@ -199,11 +278,13 @@ function Player(num,color,enabled){
 		{
 			step = MAX_BOUND-SIZE/2 - this.position.x;
 			this.position.x = MAX_BOUND-SIZE/2;
+			this.velocity.x = 0;
 		}
 		else if (this.position.x + step < -MAX_BOUND+SIZE/2)
 		{
 			step = -MAX_BOUND+SIZE/2 - this.position.x;
 			this.position.x = -MAX_BOUND+SIZE/2;
+			this.velocity.x = 0;
 		}
 		else {
 			this.position.x += step;
@@ -229,7 +310,11 @@ function Player(num,color,enabled){
 				break;
 		}		
 	}
-
+	this.update = function()
+	{
+		this.moveX(this.velocity.x);
+		this.moveY(this.velocity.y)
+	}
 }
 
 function zoom_to(player) // player is a number
@@ -301,15 +386,19 @@ function bind_keys()
 	$(document).keyup(function(e) {
 		switch(e.which) {
 			case 37: // left
+				players[current_focused_player].stop();
 				key_controls.left = false;
 				break;
 			case 38: // up
+				players[current_focused_player].stop();
 				key_controls.up = false;
 				break;
 			case 39: // right
+				players[current_focused_player].stop();
 				key_controls.right = false;
 				break;
 			case 40: // down
+				players[current_focused_player].stop();
 				key_controls.down = false;
 				break;
 			default: return;
@@ -396,14 +485,16 @@ function animate() {
 	requestAnimationFrame( animate );
 	for (var obj in objects)
 		objects[obj].update()
+	for (var player in players)
+		players[player].update();
 	if (key_controls.left)
-		players[current_focused_player].moveX(-key_controls.step);
+		players[current_focused_player].accelerate(new THREE.Vector2(-PLAYER_ACCEL_CONSTANT,0));
 	if (key_controls.right)
-		players[current_focused_player].moveX(key_controls.step);
+		players[current_focused_player].accelerate(new THREE.Vector2(PLAYER_ACCEL_CONSTANT,0));
 	if (key_controls.up)
-		players[current_focused_player].moveY(key_controls.step);
+		players[current_focused_player].accelerate(new THREE.Vector2(0,PLAYER_ACCEL_CONSTANT));
 	if (key_controls.down)
-		players[current_focused_player].moveY(-key_controls.step);
+		players[current_focused_player].accelerate(new THREE.Vector2(0,-PLAYER_ACCEL_CONSTANT));
 	if (rotation_intermediate !== undefined)
 	{
 		var cur_pos = get_lat_long();
@@ -421,7 +512,6 @@ function animate() {
 				diff_long2 = Math.PI*2 - cur_pos[1];
 			diff_long = diff_long < diff_long2 ? diff_long : diff_long2;
 		}
-		log(diff_lat,diff_long);
 		if (Math.abs(diff_lat) > 0.01)
 		{
 			if (Math.abs(diff_lat) < ROTATION_STEP)
