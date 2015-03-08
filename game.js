@@ -75,7 +75,7 @@ function Ball(position,velocity,color){
 			this.position.add(velocity);
 			if (this.position.x >= MAX_BOUND)
 			{
-				this.position.x = MAX_BOUND;			
+				this.position.x = MAX_BOUND;
 				this.velocity.x *= -1;
 				if (players[1].enabled) // player direction → world direction comments added
 				{
@@ -92,7 +92,7 @@ function Ball(position,velocity,color){
 					else
 					{
 						log("player 1 missed");
-					}				
+					}
 				}
 			}
 			if (this.position.x <= -MAX_BOUND)
@@ -113,8 +113,8 @@ function Ball(position,velocity,color){
 					}
 					else
 					{
-						log("player 0 missed");	
-					}				
+						log("player 0 missed");
+					}
 				}
 			}
 			if (this.position.y >= MAX_BOUND)
@@ -122,7 +122,7 @@ function Ball(position,velocity,color){
 				this.position.y = MAX_BOUND;
 				this.velocity.y *= -1;
 				if (players[3].enabled)
-				{	
+				{
 					if (checkCollisions(this.mesh,[players[3].mesh]))
 					{
 						// -y → +z, +x → +x
@@ -144,7 +144,7 @@ function Ball(position,velocity,color){
 				this.position.y = -MAX_BOUND;
 				this.velocity.y *= -1;
 				if (players[2].enabled)
-				{	
+				{
 					if (checkCollisions(this.mesh,[players[2].mesh]))
 					{
 						// +y → +z, +x → +x
@@ -201,12 +201,12 @@ function Ball(position,velocity,color){
 					}
 					else
 					{
-						log("player 5 missed");	
-					}				
+						log("player 5 missed");
+					}
 				}
 			}
 		}
-		
+
 		this.set_position();
 	}
 	this.set_position = function()
@@ -246,7 +246,7 @@ function Player(num,color,enabled){
 			this.mesh.rotation.y = -Math.PI/2;
 			this.mesh.translateZ(MAX_BOUND);
 			break;
-		case 1: 
+		case 1:
 			this.mesh.rotation.y = Math.PI/2;
 			this.mesh.translateZ(MAX_BOUND);
 			break;
@@ -254,7 +254,7 @@ function Player(num,color,enabled){
 			this.mesh.rotation.x = Math.PI/2;
 			this.mesh.translateZ(MAX_BOUND);
 			break;
-		case 3: 
+		case 3:
 			this.mesh.rotation.x = -Math.PI/2;
 			this.mesh.translateZ(MAX_BOUND);
 			break;
@@ -262,7 +262,7 @@ function Player(num,color,enabled){
 			this.mesh.rotation.z = Math.PI/2;
 			this.mesh.translateZ(MAX_BOUND);
 			break;
-		case 5: 
+		case 5:
 			this.mesh.rotation.z = -Math.PI/2;
 			this.mesh.translateZ(-MAX_BOUND);
 			break;
@@ -278,7 +278,7 @@ function Player(num,color,enabled){
 		this.velocity.y = 0;
 	}
 	this.moveY = function(step){
-		
+
 		if (this.position.y + step > MAX_BOUND-SIZE/2)
 		{
 			step = MAX_BOUND-SIZE/2 - this.position.y;
@@ -291,7 +291,7 @@ function Player(num,color,enabled){
 			this.position.y = -MAX_BOUND+SIZE/2;
 			this.velocity.y = 0;
 		}
-		else 
+		else
 		{
 			this.position.y += step;
 		}
@@ -315,7 +315,7 @@ function Player(num,color,enabled){
 			case 5:
 				this.mesh.translateX(-step);
 				break;
-		}		
+		}
 	}
 	this.moveX = function(step){
 		if (this.position.x + step > MAX_BOUND-SIZE/2)
@@ -352,7 +352,7 @@ function Player(num,color,enabled){
 			case 5:
 				this.mesh.translateY(-step);
 				break;
-		}		
+		}
 	}
 	this.update = function()
 	{
@@ -425,7 +425,7 @@ function bind_keys()
 				break;
 			default: return;
 		}
-		e.preventDefault(); 
+		e.preventDefault();
 	});
 	$(document).keyup(function(e) {
 		switch(e.which) {
@@ -447,7 +447,7 @@ function bind_keys()
 				break;
 			default: return;
 		}
-		e.preventDefault(); 
+		e.preventDefault();
 	});
 }
 function init() {
@@ -475,7 +475,7 @@ function get_lat_long()
 	x=camera.getWorldPosition();
 	if (x.z > 0)
 	{
-		longitude = Math.atan(x.x/x.z) + Math.PI;	
+		longitude = Math.atan(x.x/x.z) + Math.PI;
 	}
 	else if (x.x <= 0)
 	{
@@ -485,7 +485,7 @@ function get_lat_long()
 	{
 		longitude = Math.PI*2 - Math.abs(Math.atan(x.x/x.z));
 	}
-	latitude = Math.atan(x.y/radius(x.x,x.z));	
+	latitude = Math.atan(x.y/radius(x.x,x.z));
 	return [latitude,longitude];
 }
 function createSkyBox() {
@@ -516,7 +516,7 @@ function checkCollisions(mesh,collidableMeshList) // http://stackoverflow.com/qu
 
 		var ray = new THREE.Raycaster( mesh.position, directionVector.clone().normalize() );
 		var collisionResults = ray.intersectObjects( collidableMeshList );
-		if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) 
+		if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() )
 		{
 			log("collision")
 			return true;
