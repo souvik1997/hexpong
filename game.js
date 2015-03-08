@@ -2,7 +2,7 @@ var scene, camera, renderer;
 var geometry, material, mesh;
 var SKYBOX_MAX_RADIUS = 20000;
 var MAX_BOUND = 2000;
-var PRINT_LOGS = true;
+var PRINT_LOGS = false;
 
 var ROTATION_STEP = 0.05;
 var rotation_intermediate = undefined; //used for smooth camera rotation
@@ -48,8 +48,11 @@ function log()
 function Ball(position,velocity,color){
 	var RADIUS = 50;
 	var STICKINESS = 0.2;
+	var BOUNCINESS = 1.1;
+
 	this.color = color;
 	this.position = position;
+	this.position0 = position.clone();
 	this.velocity = velocity;
 	this.sphere = function(){
 		return THREE.Sphere(position,RADIUS)
@@ -57,119 +60,160 @@ function Ball(position,velocity,color){
 	this.mesh = new THREE.Mesh(
 			new THREE.SphereGeometry(RADIUS),
 			new THREE.MeshPhongMaterial({color:this.color}));
+	this.reset = false;
 	this.update = function(){
-		this.position.add(velocity);
-		if (this.position.x >= MAX_BOUND)
+		if (this.reset)
 		{
-			this.position.x = MAX_BOUND;			
-			this.velocity.x *= -1;
-			if (players[1].enabled) // player direction → world direction comments added
+			this.position = this.position0;
+			this.velocity.x = Math.random()*12;
+			this.velocity.y = Math.random()*12;
+			this.velocity.z = Math.random()*12;
+			this.reset = false;
+		}
+		else
+		{
+			this.position.add(velocity);
+			if (this.position.x >= MAX_BOUND)
 			{
-				if (checkCollisions(this.mesh,[players[1].mesh]))
+				this.position.x = MAX_BOUND;			
+				this.velocity.x *= -1;
+				if (players[1].enabled) // player direction → world direction comments added
 				{
-					// +x → +z, +y → +y
-					this.velocity.z += STICKINESS * players[1].velocity.x;
-					this.velocity.y += STICKINESS * players[1].velocity.y;
+					if (checkCollisions(this.mesh,[players[1].mesh]))
+					{
+						// +x → +z, +y → +y
+						this.velocity.z += STICKINESS * players[1].velocity.x;
+						this.velocity.y += STICKINESS * players[1].velocity.y;
+
+						this.velocity.x *= BOUNCINESS;
+						this.velocity.y *= BOUNCINESS;
+						this.velocity.z *= BOUNCINESS;
+					}
+					else
+					{
+						log("player 1 missed");
+					}				
 				}
-				else
-				{
-					log("player 1 missed");
-				}				
 			}
-		}
-		if (this.position.x <= -MAX_BOUND)
-		{
-			this.position.x = -MAX_BOUND;
-			this.velocity.x *= -1;
-			if (players[0].enabled)
+			if (this.position.x <= -MAX_BOUND)
 			{
-				if (checkCollisions(this.mesh,[players[0].mesh]))
+				this.position.x = -MAX_BOUND;
+				this.velocity.x *= -1;
+				if (players[0].enabled)
 				{
-					// +x → -z, +y → +y
-					this.velocity.z += -STICKINESS * players[0].velocity.x;
-					this.velocity.y += STICKINESS * players[0].velocity.y;
-				}
-				else
-				{
-					log("player 0 missed");	
-				}				
-			}
-		}
-		if (this.position.y >= MAX_BOUND)
-		{
-			this.position.y = MAX_BOUND;
-			this.velocity.y *= -1;
-			if (players[3].enabled)
-			{	
-				if (checkCollisions(this.mesh,[players[3].mesh]))
-				{
-					// -y → +z, +x → +x
-					this.velocity.x += STICKINESS * players[3].velocity.x;
-					this.velocity.z += -STICKINESS * players[3].velocity.y;
-				}
-				else
-				{
-					log("player 3 missed");
+					if (checkCollisions(this.mesh,[players[0].mesh]))
+					{
+						// +x → -z, +y → +y
+						this.velocity.z += -STICKINESS * players[0].velocity.x;
+						this.velocity.y += STICKINESS * players[0].velocity.y;
+
+						this.velocity.x *= BOUNCINESS;
+						this.velocity.y *= BOUNCINESS;
+						this.velocity.z *= BOUNCINESS;
+					}
+					else
+					{
+						log("player 0 missed");	
+					}				
 				}
 			}
-		}
-		if (this.position.y <= -MAX_BOUND)
-		{
-			this.position.y = -MAX_BOUND;
-			this.velocity.y *= -1;
-			if (players[2].enabled)
-			{	
-				if (checkCollisions(this.mesh,[players[2].mesh]))
-				{
-					// +y → +z, +x → +x
-					this.velocity.x += STICKINESS * players[2].velocity.x;
-					this.velocity.z += -STICKINESS * players[2].velocity.y;
-				}
-				else
-				{
-					log("player 2 missed");
-				}
-			}
-		}
-		if (this.position.z >= MAX_BOUND)
-		{
-			this.position.z = MAX_BOUND;
-			this.velocity.z *= -1;
-			if (players[4].enabled)
+			if (this.position.y >= MAX_BOUND)
 			{
-				if (checkCollisions(this.mesh,[players[4].mesh]))
-				{
-					// +x → +x, +y → +y
-					this.velocity.x += STICKINESS * players[4].velocity.x;
-					this.velocity.y += STICKINESS * players[4].velocity.y;
-				}
-				else
-				{
-					log("player 4 missed");
+				this.position.y = MAX_BOUND;
+				this.velocity.y *= -1;
+				if (players[3].enabled)
+				{	
+					if (checkCollisions(this.mesh,[players[3].mesh]))
+					{
+						// -y → +z, +x → +x
+						this.velocity.x += STICKINESS * players[3].velocity.x;
+						this.velocity.z += -STICKINESS * players[3].velocity.y;
+
+						this.velocity.x *= BOUNCINESS;
+						this.velocity.y *= BOUNCINESS;
+						this.velocity.z *= BOUNCINESS;
+					}
+					else
+					{
+						log("player 3 missed");
+					}
 				}
 			}
-		}
-		if (this.position.z <= -MAX_BOUND)
-		{
-			this.position.z = -MAX_BOUND;
-			this.velocity.z *= -1;
-			if (players[5].enabled)
+			if (this.position.y <= -MAX_BOUND)
 			{
-				if (checkCollisions(this.mesh,[players[5].mesh]))
-				{
-					// +x → -x, +y → +y
-					this.velocity.x += -STICKINESS * players[5].velocity.x;
-					this.velocity.y += STICKINESS * players[5].velocity.y;
+				this.position.y = -MAX_BOUND;
+				this.velocity.y *= -1;
+				if (players[2].enabled)
+				{	
+					if (checkCollisions(this.mesh,[players[2].mesh]))
+					{
+						// +y → +z, +x → +x
+						this.velocity.x += STICKINESS * players[2].velocity.x;
+						this.velocity.z += -STICKINESS * players[2].velocity.y;
+
+						this.velocity.x *= BOUNCINESS;
+						this.velocity.y *= BOUNCINESS;
+						this.velocity.z *= BOUNCINESS;
+					}
+					else
+					{
+						log("player 2 missed");
+					}
 				}
-				else
+			}
+			if (this.position.z >= MAX_BOUND)
+			{
+				this.position.z = MAX_BOUND;
+				this.velocity.z *= -1;
+				if (players[4].enabled)
 				{
-					log("player 5 missed");	
-				}				
+					if (checkCollisions(this.mesh,[players[4].mesh]))
+					{
+						// +x → +x, +y → +y
+						this.velocity.x += STICKINESS * players[4].velocity.x;
+						this.velocity.y += STICKINESS * players[4].velocity.y;
+
+						this.velocity.x *= BOUNCINESS;
+						this.velocity.y *= BOUNCINESS;
+						this.velocity.z *= BOUNCINESS;
+					}
+					else
+					{
+						log("player 4 missed");
+					}
+				}
+			}
+			if (this.position.z <= -MAX_BOUND)
+			{
+				this.position.z = -MAX_BOUND;
+				this.velocity.z *= -1;
+				if (players[5].enabled)
+				{
+					if (checkCollisions(this.mesh,[players[5].mesh]))
+					{
+						// +x → -x, +y → +y
+						this.velocity.x += -STICKINESS * players[5].velocity.x;
+						this.velocity.y += STICKINESS * players[5].velocity.y;
+
+						this.velocity.x *= BOUNCINESS;
+						this.velocity.y *= BOUNCINESS;
+						this.velocity.z *= BOUNCINESS;
+					}
+					else
+					{
+						log("player 5 missed");	
+					}				
+				}
 			}
 		}
-		this.mesh.translateX(position.x-this.mesh.position.x);
-		this.mesh.translateY(position.y-this.mesh.position.y);
-		this.mesh.translateZ(position.z-this.mesh.position.z);
+		
+		this.set_position();
+	}
+	this.set_position = function()
+	{
+		this.mesh.translateX(this.position.x-this.mesh.position.x);
+		this.mesh.translateY(this.position.y-this.mesh.position.y);
+		this.mesh.translateZ(this.position.z-this.mesh.position.z);
 	}
 }
 
