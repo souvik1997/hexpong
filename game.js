@@ -6,7 +6,7 @@ var PRINT_LOGS = false;
 var ROTATION_STEP = 0.05;
 var rotation_intermediate; //used for smooth camera rotation
 var objects = [new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, -6, 4), 0xffffff)];
-var players = [new Player(0, get_random_color(), true, true), new Player(1, get_random_color(), true, true), new Player(2, get_random_color(), true, true), new Player(3, get_random_color(), true, true), new Player(4, get_random_color(), true, true), new Player(5, get_random_color(), true, true)];
+var players = [new Player(0, get_random_color()), new Player(1, get_random_color(), true, true), new Player(2, get_random_color(), true, true), new Player(3, get_random_color(), true, true), new Player(4, get_random_color(), true, true), new Player(5, get_random_color(), true, true)];
 var current_focused_player = 0;
 var PLAYER_ACCEL_CONSTANT = 8;
 var key_controls = {
@@ -259,7 +259,7 @@ function Player(num, color, enabled, ai)
 				color: this.color,
 				side: THREE.DoubleSide,
 				transparent: true,
-				opacity: 0.9
+				opacity: 0.6
 			}));
 	/* Positions:
 		0: -x
