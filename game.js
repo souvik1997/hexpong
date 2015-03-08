@@ -3,17 +3,18 @@ var geometry, material, mesh;
 var SKYBOX_MAX_RADIUS = 20000;
 var MAX_BOUND = 2000;
 var PRINT_LOGS = false;
-
 var ROTATION_STEP = 0.05;
-var rotation_intermediate = undefined; //used for smooth camera rotation
-
-var objects = [new Ball(new THREE.Vector3(0,0,0), new THREE.Vector3(10,-6,4), get_random_color())];
-var players = [new Player(0,get_random_color(),false),new Player(1,get_random_color()),new Player(2,get_random_color()),new Player(3,get_random_color()),new Player(4,get_random_color()),new Player(5,get_random_color())];
-
+var rotation_intermediate; //used for smooth camera rotation
+var objects = [new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, -6, 4), get_random_color())];
+var players = [new Player(0, get_random_color(), false), new Player(1, get_random_color()), new Player(2, get_random_color()), new Player(3, get_random_color()), new Player(4, get_random_color()), new Player(5, get_random_color())];
 var current_focused_player = 0;
 var PLAYER_ACCEL_CONSTANT = 8;
-var key_controls = {left:false, right:false, up:false, down:false}
-
+var key_controls = {
+	left: false,
+	right: false,
+	up: false,
+	down: false
+}
 $(document).ready(function()
 {
 	init();
@@ -25,17 +26,16 @@ $(document).ready(function()
 		if (players[player].enabled)
 			scene.add(players[player].mesh);
 	bounding_cube = new THREE.BoxHelper(new THREE.Mesh(
-			new THREE.BoxGeometry(MAX_BOUND*2,MAX_BOUND*2,MAX_BOUND*2,2,2),
-			new THREE.LineBasicMaterial()));
+		new THREE.BoxGeometry(MAX_BOUND * 2, MAX_BOUND * 2, MAX_BOUND * 2, 2, 2),
+		new THREE.LineBasicMaterial()));
 	bounding_cube.material.color.set(0x321087);
 	scene.add(bounding_cube);
-
 	animate();
 });
 
 function get_random_color()
 {
-	return Math.round(Math.random()*0xffffff);
+	return Math.round(Math.random() * 0xffffff);
 }
 
 function log()
@@ -45,29 +45,34 @@ function log()
 			console.log(arguments[i]);
 }
 
-function Ball(position,velocity,color){
+function Ball(position, velocity, color)
+{
 	var RADIUS = 50;
 	var STICKINESS = 0.2;
 	var BOUNCINESS = 1.1;
-
 	this.color = color;
 	this.position = position;
 	this.position0 = position.clone();
 	this.velocity = velocity;
-	this.sphere = function(){
-		return THREE.Sphere(position,RADIUS)
+	this.sphere = function()
+	{
+		return THREE.Sphere(position, RADIUS)
 	}
 	this.mesh = new THREE.Mesh(
-			new THREE.SphereGeometry(RADIUS),
-			new THREE.MeshPhongMaterial({color:this.color}));
+		new THREE.SphereGeometry(RADIUS),
+		new THREE.MeshPhongMaterial(
+		{
+			color: this.color
+		}));
 	this.reset = false;
-	this.update = function(){
+	this.update = function()
+	{
 		if (this.reset)
 		{
 			this.position = this.position0;
-			this.velocity.x = Math.random()*12;
-			this.velocity.y = Math.random()*12;
-			this.velocity.z = Math.random()*12;
+			this.velocity.x = Math.random() * 12;
+			this.velocity.y = Math.random() * 12;
+			this.velocity.z = Math.random() * 12;
 			this.reset = false;
 		}
 		else
@@ -79,12 +84,11 @@ function Ball(position,velocity,color){
 				this.velocity.x *= -1;
 				if (players[1].enabled) // player direction → world direction comments added
 				{
-					if (checkCollisions(this.mesh,[players[1].mesh]))
+					if (checkCollisions(this.mesh, [players[1].mesh]))
 					{
 						// +x → +z, +y → +y
 						this.velocity.z += STICKINESS * players[1].velocity.x;
 						this.velocity.y += STICKINESS * players[1].velocity.y;
-
 						this.velocity.x *= BOUNCINESS;
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
@@ -101,12 +105,11 @@ function Ball(position,velocity,color){
 				this.velocity.x *= -1;
 				if (players[0].enabled)
 				{
-					if (checkCollisions(this.mesh,[players[0].mesh]))
+					if (checkCollisions(this.mesh, [players[0].mesh]))
 					{
 						// +x → -z, +y → +y
 						this.velocity.z += -STICKINESS * players[0].velocity.x;
 						this.velocity.y += STICKINESS * players[0].velocity.y;
-
 						this.velocity.x *= BOUNCINESS;
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
@@ -123,12 +126,11 @@ function Ball(position,velocity,color){
 				this.velocity.y *= -1;
 				if (players[3].enabled)
 				{
-					if (checkCollisions(this.mesh,[players[3].mesh]))
+					if (checkCollisions(this.mesh, [players[3].mesh]))
 					{
 						// -y → +z, +x → +x
 						this.velocity.x += STICKINESS * players[3].velocity.x;
 						this.velocity.z += -STICKINESS * players[3].velocity.y;
-
 						this.velocity.x *= BOUNCINESS;
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
@@ -145,12 +147,11 @@ function Ball(position,velocity,color){
 				this.velocity.y *= -1;
 				if (players[2].enabled)
 				{
-					if (checkCollisions(this.mesh,[players[2].mesh]))
+					if (checkCollisions(this.mesh, [players[2].mesh]))
 					{
 						// +y → +z, +x → +x
 						this.velocity.x += STICKINESS * players[2].velocity.x;
 						this.velocity.z += -STICKINESS * players[2].velocity.y;
-
 						this.velocity.x *= BOUNCINESS;
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
@@ -167,12 +168,11 @@ function Ball(position,velocity,color){
 				this.velocity.z *= -1;
 				if (players[4].enabled)
 				{
-					if (checkCollisions(this.mesh,[players[4].mesh]))
+					if (checkCollisions(this.mesh, [players[4].mesh]))
 					{
 						// +x → +x, +y → +y
 						this.velocity.x += STICKINESS * players[4].velocity.x;
 						this.velocity.y += STICKINESS * players[4].velocity.y;
-
 						this.velocity.x *= BOUNCINESS;
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
@@ -189,12 +189,11 @@ function Ball(position,velocity,color){
 				this.velocity.z *= -1;
 				if (players[5].enabled)
 				{
-					if (checkCollisions(this.mesh,[players[5].mesh]))
+					if (checkCollisions(this.mesh, [players[5].mesh]))
 					{
 						// +x → -x, +y → +y
 						this.velocity.x += -STICKINESS * players[5].velocity.x;
 						this.velocity.y += STICKINESS * players[5].velocity.y;
-
 						this.velocity.x *= BOUNCINESS;
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
@@ -206,22 +205,22 @@ function Ball(position,velocity,color){
 				}
 			}
 		}
-
 		this.set_position();
 	}
 	this.set_position = function()
 	{
-		this.mesh.translateX(this.position.x-this.mesh.position.x);
-		this.mesh.translateY(this.position.y-this.mesh.position.y);
-		this.mesh.translateZ(this.position.z-this.mesh.position.z);
+		this.mesh.translateX(this.position.x - this.mesh.position.x);
+		this.mesh.translateY(this.position.y - this.mesh.position.y);
+		this.mesh.translateZ(this.position.z - this.mesh.position.z);
 	}
 }
 
-function Player(num,color,enabled){
+function Player(num, color, enabled)
+{
 	var SIZE = 800;
 	this.color = color;
-	this.position = new THREE.Vector2(0,0);
-	this.velocity = new THREE.Vector2(0,0);
+	this.position = new THREE.Vector2(0, 0);
+	this.velocity = new THREE.Vector2(0, 0);
 	if (enabled === undefined)
 	{
 		this.enabled = true;
@@ -231,8 +230,14 @@ function Player(num,color,enabled){
 		this.enabled = enabled;
 	}
 	this.mesh = new THREE.Mesh(
-		new THREE.BoxGeometry(SIZE,SIZE,SIZE/8),
-		new THREE.MeshBasicMaterial({color:this.color, side:THREE.DoubleSide, transparent:true, opacity:0.9}))
+			new THREE.BoxGeometry(SIZE, SIZE, SIZE / 8),
+			new THREE.MeshBasicMaterial(
+			{
+				color: this.color,
+				side: THREE.DoubleSide,
+				transparent: true,
+				opacity: 0.9
+			}));
 	/* Positions:
 		0: -x
 		1: +x
@@ -241,62 +246,63 @@ function Player(num,color,enabled){
 		4: -z
 		5: +z
 	*/
-	switch (num){
+	switch (num)
+	{
 		case 0:
-			this.mesh.rotation.y = -Math.PI/2;
+			this.mesh.rotation.y = -Math.PI / 2;
 			this.mesh.translateZ(MAX_BOUND);
 			break;
 		case 1:
-			this.mesh.rotation.y = Math.PI/2;
+			this.mesh.rotation.y = Math.PI / 2;
 			this.mesh.translateZ(MAX_BOUND);
 			break;
 		case 2:
-			this.mesh.rotation.x = Math.PI/2;
+			this.mesh.rotation.x = Math.PI / 2;
 			this.mesh.translateZ(MAX_BOUND);
 			break;
 		case 3:
-			this.mesh.rotation.x = -Math.PI/2;
+			this.mesh.rotation.x = -Math.PI / 2;
 			this.mesh.translateZ(MAX_BOUND);
 			break;
 		case 4:
-			this.mesh.rotation.z = Math.PI/2;
+			this.mesh.rotation.z = Math.PI / 2;
 			this.mesh.translateZ(MAX_BOUND);
 			break;
 		case 5:
-			this.mesh.rotation.z = -Math.PI/2;
+			this.mesh.rotation.z = -Math.PI / 2;
 			this.mesh.translateZ(-MAX_BOUND);
 			break;
 	}
 	this.accelerate = function(acc_vec) //THREE.Vector2
-	{
-		this.velocity.x += acc_vec.x;
-		this.velocity.y += acc_vec.y;
-	}
+		{
+			this.velocity.x += acc_vec.x;
+			this.velocity.y += acc_vec.y;
+		}
 	this.stop = function()
 	{
 		this.velocity.x = 0;
 		this.velocity.y = 0;
 	}
-	this.moveY = function(step){
-
-		if (this.position.y + step > MAX_BOUND-SIZE/2)
+	this.moveY = function(step)
+	{
+		if (this.position.y + step > MAX_BOUND - SIZE / 2)
 		{
-			step = MAX_BOUND-SIZE/2 - this.position.y;
-			this.position.y = MAX_BOUND-SIZE/2;
+			step = MAX_BOUND - SIZE / 2 - this.position.y;
+			this.position.y = MAX_BOUND - SIZE / 2;
 			this.velocity.y = 0;
 		}
-		else if (this.position.y + step < -MAX_BOUND+SIZE/2)
+		else if (this.position.y + step < -MAX_BOUND + SIZE / 2)
 		{
-			step = -MAX_BOUND+SIZE/2 - this.position.y;
-			this.position.y = -MAX_BOUND+SIZE/2;
+			step = -MAX_BOUND + SIZE / 2 - this.position.y;
+			this.position.y = -MAX_BOUND + SIZE / 2;
 			this.velocity.y = 0;
 		}
 		else
 		{
 			this.position.y += step;
 		}
-
-		switch (num){
+		switch (num)
+		{
 			case 0:
 				this.mesh.translateY(step);
 				break;
@@ -317,23 +323,26 @@ function Player(num,color,enabled){
 				break;
 		}
 	}
-	this.moveX = function(step){
-		if (this.position.x + step > MAX_BOUND-SIZE/2)
+	this.moveX = function(step)
+	{
+		if (this.position.x + step > MAX_BOUND - SIZE / 2)
 		{
-			step = MAX_BOUND-SIZE/2 - this.position.x;
-			this.position.x = MAX_BOUND-SIZE/2;
+			step = MAX_BOUND - SIZE / 2 - this.position.x;
+			this.position.x = MAX_BOUND - SIZE / 2;
 			this.velocity.x = 0;
 		}
-		else if (this.position.x + step < -MAX_BOUND+SIZE/2)
+		else if (this.position.x + step < -MAX_BOUND + SIZE / 2)
 		{
-			step = -MAX_BOUND+SIZE/2 - this.position.x;
-			this.position.x = -MAX_BOUND+SIZE/2;
+			step = -MAX_BOUND + SIZE / 2 - this.position.x;
+			this.position.x = -MAX_BOUND + SIZE / 2;
 			this.velocity.x = 0;
 		}
-		else {
+		else
+		{
 			this.position.x += step;
 		}
-		switch (num){
+		switch (num)
+		{
 			case 0:
 				this.mesh.translateX(step);
 				break;
@@ -362,22 +371,24 @@ function Player(num,color,enabled){
 }
 
 function zoom_to(player) // player is a number
-{
-	target_angles = [
-		[0,Math.PI/2],
-		[0,Math.PI*3/2],
-		[-Math.PI/2,Math.PI],
-		[Math.PI/2,Math.PI],
-		[0,Math.PI],
-		[0,0]
-	]
-	rotation_intermediate = target_angles[player];
-}
+	{
+		target_angles = [
+			[0, Math.PI / 2],
+			[0, Math.PI * 3 / 2],
+			[-Math.PI / 2, Math.PI],
+			[Math.PI / 2, Math.PI],
+			[0, Math.PI],
+			[0, 0]
+		]
+		rotation_intermediate = target_angles[player];
+	}
 
 function bind_keys()
 {
-	$(document).keydown(function(e) {
-		switch(e.which) {
+	$(document).keydown(function(e)
+	{
+		switch (e.which)
+		{
 			case 48:
 				current_focused_player = 0;
 				zoom_to(0);
@@ -423,12 +434,15 @@ function bind_keys()
 			case 40: // down
 				key_controls.down = true;
 				break;
-			default: return;
+			default:
+				return;
 		}
 		e.preventDefault();
 	});
-	$(document).keyup(function(e) {
-		switch(e.which) {
+	$(document).keyup(function(e)
+	{
+		switch (e.which)
+		{
 			case 37: // left
 				players[current_focused_player].stop();
 				key_controls.left = false;
@@ -445,100 +459,110 @@ function bind_keys()
 				players[current_focused_player].stop();
 				key_controls.down = false;
 				break;
-			default: return;
+			default:
+				return;
 		}
 		e.preventDefault();
 	});
 }
-function init() {
 
+function init()
+{
 	scene = new THREE.Scene();
-	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, SKYBOX_MAX_RADIUS*2 );
+	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, SKYBOX_MAX_RADIUS * 2);
 	camera.position.z = 1000;
-	var central_light = new THREE.PointLight( 0xffffff, 1, SKYBOX_MAX_RADIUS );
-	central_light.position.set( 0, 0, 0 );
+	var central_light = new THREE.PointLight(0xffffff, 1, SKYBOX_MAX_RADIUS);
+	central_light.position.set(0, 0, 0);
 	scene.add(central_light);
-
 	renderer = new THREE.WebGLRenderer();
 	renderer.autoClear = true;
-	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setSize(window.innerWidth, window.innerHeight);
 	controls = new THREE.OrbitControls(camera, renderer.domElement);
 	controls.maxDistance = SKYBOX_MAX_RADIUS;
 	controls.noPan = true;
 	controls.dollyOut(900);
 	$("body").append(renderer.domElement);
-
 }
+
 function get_lat_long()
 {
-	function radius(x,y,z){ return Math.sqrt(Math.pow(x,2)+Math.pow(y,2)) }
-	x=camera.getWorldPosition();
+	function radius(x, y, z)
+	{
+		return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
+	}
+	x = camera.getWorldPosition();
 	if (x.z > 0)
 	{
-		longitude = Math.atan(x.x/x.z) + Math.PI;
+		longitude = Math.atan(x.x / x.z) + Math.PI;
 	}
 	else if (x.x <= 0)
 	{
-		longitude = Math.abs(Math.atan(x.x/x.z));
+		longitude = Math.abs(Math.atan(x.x / x.z));
 	}
 	else if (x.x > 0)
 	{
-		longitude = Math.PI*2 - Math.abs(Math.atan(x.x/x.z));
+		longitude = Math.PI * 2 - Math.abs(Math.atan(x.x / x.z));
 	}
-	latitude = Math.atan(x.y/radius(x.x,x.z));
-	return [latitude,longitude];
+	latitude = Math.atan(x.y / radius(x.x, x.z));
+	return [latitude, longitude];
 }
-function createSkyBox() {
-	var geometry = new THREE.SphereGeometry(SKYBOX_MAX_RADIUS,10,10);
-	var uniforms = {
-		texture: { type: 't', value: THREE.ImageUtils.loadTexture('assets/skybox.jpg') }
-	};
 
-	var material = new THREE.ShaderMaterial( {
-		uniforms:       uniforms,
-		vertexShader:   document.getElementById('sky-vertex').textContent,
+function createSkyBox()
+{
+	var geometry = new THREE.SphereGeometry(SKYBOX_MAX_RADIUS, 10, 10);
+	var uniforms = {
+		texture:
+		{
+			type: 't',
+			value: THREE.ImageUtils.loadTexture('assets/skybox.jpg')
+		}
+	};
+	var material = new THREE.ShaderMaterial(
+	{
+		uniforms: uniforms,
+		vertexShader: document.getElementById('sky-vertex').textContent,
 		fragmentShader: document.getElementById('sky-fragment').textContent
 	});
-
 	skyBox = new THREE.Mesh(geometry, material);
 	skyBox.scale.set(-1, 1, 1);
 	skyBox.eulerOrder = 'XZY';
 	skyBox.renderDepth = 1000.0;
 	scene.add(skyBox);
 }
-function checkCollisions(mesh,collidableMeshList) // http://stackoverflow.com/questions/11473755/how-to-detect-collision-in-three-js
-{
-	for (var vertexIndex = 0; vertexIndex < mesh.geometry.vertices.length; vertexIndex++)
+
+function checkCollisions(mesh, collidableMeshList) // http://stackoverflow.com/questions/11473755/how-to-detect-collision-in-three-js
 	{
-		var localVertex = mesh.geometry.vertices[vertexIndex].clone();
-		var globalVertex = localVertex.applyMatrix4(mesh.matrix);
-		var directionVector = globalVertex.sub( mesh.position );
-
-		var ray = new THREE.Raycaster( mesh.position, directionVector.clone().normalize() );
-		var collisionResults = ray.intersectObjects( collidableMeshList );
-		if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() )
+		for (var vertexIndex = 0; vertexIndex < mesh.geometry.vertices.length; vertexIndex++)
 		{
-			log("collision")
-			return true;
+			var localVertex = mesh.geometry.vertices[vertexIndex].clone();
+			var globalVertex = localVertex.applyMatrix4(mesh.matrix);
+			var directionVector = globalVertex.sub(mesh.position);
+			var ray = new THREE.Raycaster(mesh.position, directionVector.clone().normalize());
+			var collisionResults = ray.intersectObjects(collidableMeshList);
+			if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length())
+			{
+				log("collision")
+				return true;
+			}
 		}
+		return false;
 	}
-	return false;
-}
-function animate() {
 
-	requestAnimationFrame( animate );
+function animate()
+{
+	requestAnimationFrame(animate);
 	for (var obj in objects)
 		objects[obj].update()
 	for (var player in players)
 		players[player].update();
 	if (key_controls.left)
-		players[current_focused_player].accelerate(new THREE.Vector2(-PLAYER_ACCEL_CONSTANT,0));
+		players[current_focused_player].accelerate(new THREE.Vector2(-PLAYER_ACCEL_CONSTANT, 0));
 	if (key_controls.right)
-		players[current_focused_player].accelerate(new THREE.Vector2(PLAYER_ACCEL_CONSTANT,0));
+		players[current_focused_player].accelerate(new THREE.Vector2(PLAYER_ACCEL_CONSTANT, 0));
 	if (key_controls.up)
-		players[current_focused_player].accelerate(new THREE.Vector2(0,PLAYER_ACCEL_CONSTANT));
+		players[current_focused_player].accelerate(new THREE.Vector2(0, PLAYER_ACCEL_CONSTANT));
 	if (key_controls.down)
-		players[current_focused_player].accelerate(new THREE.Vector2(0,-PLAYER_ACCEL_CONSTANT));
+		players[current_focused_player].accelerate(new THREE.Vector2(0, -PLAYER_ACCEL_CONSTANT));
 	if (rotation_intermediate !== undefined)
 	{
 		var cur_pos = get_lat_long();
@@ -550,10 +574,10 @@ function animate() {
 			diff_long = rotation_intermediate[1] - cur_pos[1];
 		if (rotation_intermediate[1] == 0)
 		{
-			if (Math.abs(Math.PI*2 - cur_pos[1]) > Math.abs(Math.PI*2 - cur_pos[1] + Math.PI * 2)) //find the shortest path
-				diff_long2 = -(Math.PI*2 - cur_pos[1] - Math.PI * 2);
+			if (Math.abs(Math.PI * 2 - cur_pos[1]) > Math.abs(Math.PI * 2 - cur_pos[1] + Math.PI * 2)) //find the shortest path
+				diff_long2 = -(Math.PI * 2 - cur_pos[1] - Math.PI * 2);
 			else
-				diff_long2 = Math.PI*2 - cur_pos[1];
+				diff_long2 = Math.PI * 2 - cur_pos[1];
 			diff_long = diff_long < diff_long2 ? diff_long : diff_long2;
 		}
 		if (Math.abs(diff_lat) > 0.01)
@@ -561,19 +585,18 @@ function animate() {
 			if (Math.abs(diff_lat) < ROTATION_STEP)
 				controls.rotateUp(diff_lat);
 			else
-				controls.rotateUp(ROTATION_STEP * Math.abs(diff_lat)/diff_lat);
+				controls.rotateUp(ROTATION_STEP * Math.abs(diff_lat) / diff_lat);
 		}
 		if (Math.abs(diff_long) > 0.01)
 		{
 			if (Math.abs(diff_long) < ROTATION_STEP)
 				controls.rotateLeft(-diff_long);
 			else
-				controls.rotateLeft(ROTATION_STEP * -Math.abs(diff_long)/diff_long);
+				controls.rotateLeft(ROTATION_STEP * -Math.abs(diff_long) / diff_long);
 		}
 		if (Math.abs(diff_lat) < 0.01 && Math.abs(diff_long) < 0.01)
 			rotation_intermediate = undefined;
 	}
 	controls.update();
-	renderer.render( scene, camera );
-
+	renderer.render(scene, camera);
 }
