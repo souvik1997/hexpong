@@ -49,7 +49,7 @@ function get_random_color()
 		0xB4003C,
 		0x1CC095
 	]
-	return palette[Math.round(Math.random()*palette.length)];
+	return palette[Math.round(Math.random() * palette.length)];
 }
 
 function log()
@@ -234,7 +234,7 @@ function Player(num, color, enabled, ai)
 	var SIZE = 800;
 	this.color = color;
 	this.position = new THREE.Vector2(0, 0);
-	this.velocity = new THREE.Vector2(0, 0);	
+	this.velocity = new THREE.Vector2(0, 0);
 	if (enabled === undefined)
 	{
 		this.enabled = true;
@@ -253,14 +253,14 @@ function Player(num, color, enabled, ai)
 	}
 	this.num = num;
 	this.mesh = new THREE.Mesh(
-			new THREE.BoxGeometry(SIZE, SIZE, SIZE / 8),
-			new THREE.MeshBasicMaterial(
-			{
-				color: this.color,
-				side: THREE.DoubleSide,
-				transparent: true,
-				opacity: 0.6
-			}));
+		new THREE.BoxGeometry(SIZE, SIZE, SIZE / 8),
+		new THREE.MeshBasicMaterial(
+		{
+			color: this.color,
+			side: THREE.DoubleSide,
+			transparent: true,
+			opacity: 0.6
+		}));
 	/* Positions:
 		0: -x
 		1: +x
@@ -387,7 +387,7 @@ function Player(num, color, enabled, ai)
 		}
 	}
 	this.update = function()
-	{		
+	{
 		this.moveX(this.velocity.x);
 		this.moveY(this.velocity.y);
 	}
@@ -395,30 +395,28 @@ function Player(num, color, enabled, ai)
 	{
 		if (this.velocity.x < 0)
 			this.stop();
-		this.accelerate(new THREE.Vector2(PLAYER_ACCEL_CONSTANT,0));
+		this.accelerate(new THREE.Vector2(PLAYER_ACCEL_CONSTANT, 0));
 	}
 	this.move_left_ai = function()
 	{
 		if (this.velocity.x > 0)
 			this.stop();
-		this.accelerate(new THREE.Vector2(-PLAYER_ACCEL_CONSTANT,0));
+		this.accelerate(new THREE.Vector2(-PLAYER_ACCEL_CONSTANT, 0));
 	}
 	this.move_up_ai = function()
 	{
 		if (this.velocity.y < 0)
 			this.stop();
-		this.accelerate(new THREE.Vector2(0,PLAYER_ACCEL_CONSTANT));
+		this.accelerate(new THREE.Vector2(0, PLAYER_ACCEL_CONSTANT));
 	}
 	this.move_down_ai = function()
 	{
 		if (this.velocity.y > 0)
 			this.stop();
-		this.accelerate(new THREE.Vector2(0,-PLAYER_ACCEL_CONSTANT));
+		this.accelerate(new THREE.Vector2(0, -PLAYER_ACCEL_CONSTANT));
 	}
 	this.update_if_ai = function(ball)
 	{
-		
-
 		if (this.ai)
 		{
 			switch (this.num)
@@ -507,7 +505,6 @@ function Player(num, color, enabled, ai)
 					else if (ball.position.x == this.position.x)
 						this.stop();
 					break;
-					
 			}
 		}
 	}
@@ -615,50 +612,43 @@ function init()
 	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, SKYBOX_MAX_RADIUS * 2);
 	camera.position.z = 1000;
 	var camera_positions = [
-		[new THREE.Vector3(0,0,0),0xffffff],
-		[new THREE.Vector3(-MAX_BOUND,0,0),players[0].color],
-		[new THREE.Vector3(-MAX_BOUND,MAX_BOUND/2,0),players[0].color],
-		[new THREE.Vector3(-MAX_BOUND,-MAX_BOUND/2,0),players[0].color],
-		[new THREE.Vector3(-MAX_BOUND,0,MAX_BOUND/2),players[0].color],
-		[new THREE.Vector3(-MAX_BOUND,0,-MAX_BOUND/2),players[0].color],
-
-		[new THREE.Vector3(MAX_BOUND,0,0),players[1].color],
-		[new THREE.Vector3(MAX_BOUND,MAX_BOUND/2,0),players[1].color],
-		[new THREE.Vector3(MAX_BOUND,-MAX_BOUND/2,0),players[1].color],
-		[new THREE.Vector3(MAX_BOUND,0,MAX_BOUND/2),players[1].color],
-		[new THREE.Vector3(MAX_BOUND,0,-MAX_BOUND/2),players[1].color],
-
-		[new THREE.Vector3(0,-MAX_BOUND,0),players[2].color],
-		[new THREE.Vector3(MAX_BOUND/2,-MAX_BOUND,0),players[2].color],
-		[new THREE.Vector3(-MAX_BOUND/2,-MAX_BOUND,0),players[2].color],
-		[new THREE.Vector3(0,-MAX_BOUND,MAX_BOUND/2),players[2].color],
-		[new THREE.Vector3(0,-MAX_BOUND,-MAX_BOUND/2),players[2].color],
-
-		[new THREE.Vector3(0,MAX_BOUND,0),players[3].color],
-		[new THREE.Vector3(MAX_BOUND/2,MAX_BOUND,0),players[3].color],
-		[new THREE.Vector3(-MAX_BOUND/2,MAX_BOUND,0),players[3].color],
-		[new THREE.Vector3(0,MAX_BOUND,MAX_BOUND/2),players[3].color],
-		[new THREE.Vector3(0,MAX_BOUND,-MAX_BOUND/2),players[3].color],
-
-		[new THREE.Vector3(0,0,MAX_BOUND),players[4].color],
-		[new THREE.Vector3(MAX_BOUND/2,0,MAX_BOUND),players[4].color],
-		[new THREE.Vector3(-MAX_BOUND/2,0,MAX_BOUND),players[4].color],
-		[new THREE.Vector3(0,MAX_BOUND/2,MAX_BOUND),players[4].color],
-		[new THREE.Vector3(0,-MAX_BOUND/2,MAX_BOUND),players[4].color],
-
-		[new THREE.Vector3(0,0,-MAX_BOUND),players[5].color],
-		[new THREE.Vector3(MAX_BOUND/2,0,-MAX_BOUND),players[5].color],
-		[new THREE.Vector3(-MAX_BOUND/2,0,-MAX_BOUND),players[5].color],
-		[new THREE.Vector3(0,MAX_BOUND/2,-MAX_BOUND),players[5].color],
-		[new THREE.Vector3(0,-MAX_BOUND/2,-MAX_BOUND),players[5].color]
+		[new THREE.Vector3(0, 0, 0), 0xffffff],
+		[new THREE.Vector3(-MAX_BOUND, 0, 0), players[0].color],
+		[new THREE.Vector3(-MAX_BOUND, MAX_BOUND / 2, 0), players[0].color],
+		[new THREE.Vector3(-MAX_BOUND, -MAX_BOUND / 2, 0), players[0].color],
+		[new THREE.Vector3(-MAX_BOUND, 0, MAX_BOUND / 2), players[0].color],
+		[new THREE.Vector3(-MAX_BOUND, 0, -MAX_BOUND / 2), players[0].color],
+		[new THREE.Vector3(MAX_BOUND, 0, 0), players[1].color],
+		[new THREE.Vector3(MAX_BOUND, MAX_BOUND / 2, 0), players[1].color],
+		[new THREE.Vector3(MAX_BOUND, -MAX_BOUND / 2, 0), players[1].color],
+		[new THREE.Vector3(MAX_BOUND, 0, MAX_BOUND / 2), players[1].color],
+		[new THREE.Vector3(MAX_BOUND, 0, -MAX_BOUND / 2), players[1].color],
+		[new THREE.Vector3(0, -MAX_BOUND, 0), players[2].color],
+		[new THREE.Vector3(MAX_BOUND / 2, -MAX_BOUND, 0), players[2].color],
+		[new THREE.Vector3(-MAX_BOUND / 2, -MAX_BOUND, 0), players[2].color],
+		[new THREE.Vector3(0, -MAX_BOUND, MAX_BOUND / 2), players[2].color],
+		[new THREE.Vector3(0, -MAX_BOUND, -MAX_BOUND / 2), players[2].color],
+		[new THREE.Vector3(0, MAX_BOUND, 0), players[3].color],
+		[new THREE.Vector3(MAX_BOUND / 2, MAX_BOUND, 0), players[3].color],
+		[new THREE.Vector3(-MAX_BOUND / 2, MAX_BOUND, 0), players[3].color],
+		[new THREE.Vector3(0, MAX_BOUND, MAX_BOUND / 2), players[3].color],
+		[new THREE.Vector3(0, MAX_BOUND, -MAX_BOUND / 2), players[3].color],
+		[new THREE.Vector3(0, 0, MAX_BOUND), players[4].color],
+		[new THREE.Vector3(MAX_BOUND / 2, 0, MAX_BOUND), players[4].color],
+		[new THREE.Vector3(-MAX_BOUND / 2, 0, MAX_BOUND), players[4].color],
+		[new THREE.Vector3(0, MAX_BOUND / 2, MAX_BOUND), players[4].color],
+		[new THREE.Vector3(0, -MAX_BOUND / 2, MAX_BOUND), players[4].color],
+		[new THREE.Vector3(0, 0, -MAX_BOUND), players[5].color],
+		[new THREE.Vector3(MAX_BOUND / 2, 0, -MAX_BOUND), players[5].color],
+		[new THREE.Vector3(-MAX_BOUND / 2, 0, -MAX_BOUND), players[5].color],
+		[new THREE.Vector3(0, MAX_BOUND / 2, -MAX_BOUND), players[5].color],
+		[new THREE.Vector3(0, -MAX_BOUND / 2, -MAX_BOUND), players[5].color]
 	];
-
 	for (pos in camera_positions)
 	{
-		var center = new THREE.PointLight(camera_positions[pos][1], 3, MAX_BOUND*3/4);
-		center.position.set(camera_positions[pos][0].x,camera_positions[pos][0].y,camera_positions[pos][0].z);
+		var center = new THREE.PointLight(camera_positions[pos][1], 3, MAX_BOUND * 3 / 4);
+		center.position.set(camera_positions[pos][0].x, camera_positions[pos][0].y, camera_positions[pos][0].z);
 		scene.add(center);
-
 	}
 	renderer = new THREE.WebGLRenderer();
 	renderer.autoClear = true;
