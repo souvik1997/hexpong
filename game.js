@@ -11,7 +11,14 @@ var objects = [
 	new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-3, -2, -8), 0xffffff),
 	new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-10, -3, 1), 0xffffff),
 ];
-var players = [new Player(0, get_random_color(), true, true), new Player(1, get_random_color(), true, true), new Player(2, get_random_color(), true, true), new Player(3, get_random_color(), true, true), new Player(4, get_random_color(), true, true), new Player(5, get_random_color(), true, true)];
+var players = [
+	new Player(0, get_random_color(), true, true),
+	new Player(1, get_random_color(), true, true),
+	new Player(2, get_random_color(), true, true),
+	new Player(3, get_random_color(), true, true),
+	new Player(4, get_random_color(), true, true),
+	new Player(5, get_random_color(), true, true)
+];
 var current_focused_player = 0;
 var PLAYER_ACCEL_CONSTANT = 8;
 var key_controls = {
@@ -127,6 +134,171 @@ function download_all(callback)
 	request.send();
 }
 
+function setup_scene()
+{
+	scene = new THREE.Scene();
+	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, SKYBOX_MAX_RADIUS * 2);
+	camera.position.z = 1000;
+	var camera_positions = [
+		[new THREE.Vector3(-MAX_BOUND, 0, 0), players[0].color],
+		[new THREE.Vector3(-MAX_BOUND, MAX_BOUND / 2, 0), players[0].color],
+		[new THREE.Vector3(-MAX_BOUND, -MAX_BOUND / 2, 0), players[0].color],
+		[new THREE.Vector3(-MAX_BOUND, 0, MAX_BOUND / 2), players[0].color],
+		[new THREE.Vector3(-MAX_BOUND, 0, -MAX_BOUND / 2), players[0].color],
+		[new THREE.Vector3(MAX_BOUND, 0, 0), players[1].color],
+		[new THREE.Vector3(MAX_BOUND, MAX_BOUND / 2, 0), players[1].color],
+		[new THREE.Vector3(MAX_BOUND, -MAX_BOUND / 2, 0), players[1].color],
+		[new THREE.Vector3(MAX_BOUND, 0, MAX_BOUND / 2), players[1].color],
+		[new THREE.Vector3(MAX_BOUND, 0, -MAX_BOUND / 2), players[1].color],
+		[new THREE.Vector3(0, -MAX_BOUND, 0), players[2].color],
+		[new THREE.Vector3(MAX_BOUND / 2, -MAX_BOUND, 0), players[2].color],
+		[new THREE.Vector3(-MAX_BOUND / 2, -MAX_BOUND, 0), players[2].color],
+		[new THREE.Vector3(0, -MAX_BOUND, MAX_BOUND / 2), players[2].color],
+		[new THREE.Vector3(0, -MAX_BOUND, -MAX_BOUND / 2), players[2].color],
+		[new THREE.Vector3(0, MAX_BOUND, 0), players[3].color],
+		[new THREE.Vector3(MAX_BOUND / 2, MAX_BOUND, 0), players[3].color],
+		[new THREE.Vector3(-MAX_BOUND / 2, MAX_BOUND, 0), players[3].color],
+		[new THREE.Vector3(0, MAX_BOUND, MAX_BOUND / 2), players[3].color],
+		[new THREE.Vector3(0, MAX_BOUND, -MAX_BOUND / 2), players[3].color],
+		[new THREE.Vector3(0, 0, MAX_BOUND), players[4].color],
+		[new THREE.Vector3(MAX_BOUND / 2, 0, MAX_BOUND), players[4].color],
+		[new THREE.Vector3(-MAX_BOUND / 2, 0, MAX_BOUND), players[4].color],
+		[new THREE.Vector3(0, MAX_BOUND / 2, MAX_BOUND), players[4].color],
+		[new THREE.Vector3(0, -MAX_BOUND / 2, MAX_BOUND), players[4].color],
+		[new THREE.Vector3(0, 0, -MAX_BOUND), players[5].color],
+		[new THREE.Vector3(MAX_BOUND / 2, 0, -MAX_BOUND), players[5].color],
+		[new THREE.Vector3(-MAX_BOUND / 2, 0, -MAX_BOUND), players[5].color],
+		[new THREE.Vector3(0, MAX_BOUND / 2, -MAX_BOUND), players[5].color],
+		[new THREE.Vector3(0, -MAX_BOUND / 2, -MAX_BOUND), players[5].color]
+	];
+	for (pos in camera_positions)
+	{
+		var center = new THREE.PointLight(camera_positions[pos][1], 3, MAX_BOUND);
+		center.position.set(camera_positions[pos][0].x, camera_positions[pos][0].y, camera_positions[pos][0].z);
+		scene.add(center);
+	}
+	renderer = new THREE.WebGLRenderer(
+	{
+		canvas: document.getElementById("c")
+	});
+	renderer.autoClear = true;
+	renderer.setSize($("#c").width(), $("#c").height());
+	controls = new THREE.OrbitControls(camera, renderer.domElement);
+	controls.maxDistance = SKYBOX_MAX_RADIUS;
+	controls.noPan = true;
+	controls.dollyOut(900);
+}
+
+function bind_keys()
+{
+	$(document).keydown(function(e)
+	{
+		switch (e.which)
+		{
+			case 48:
+				current_focused_player = 0;
+				zoom_to(0);
+				break;
+			case 49:
+				current_focused_player = 1;
+				zoom_to(1);
+				break;
+			case 50:
+				current_focused_player = 2;
+				zoom_to(2);
+				break;
+			case 51:
+				current_focused_player = 3;
+				zoom_to(3);
+				break;
+			case 52:
+				current_focused_player = 4;
+				zoom_to(4);
+				break;
+			case 53:
+				current_focused_player = 5;
+				zoom_to(5);
+				break;
+			case 8: //backspace
+				zoom_to(current_focused_player);
+				break;
+			case 187:
+				controls.dollyIn(1.1);
+				break;
+			case 189:
+				controls.dollyOut(1.1);
+				break;
+			case 37: // left
+				key_controls.left = true;
+				break;
+			case 38: // up
+				key_controls.up = true;
+				break;
+			case 39: // right
+				key_controls.right = true
+				break;
+			case 40: // down
+				key_controls.down = true;
+				break;
+			default:
+				return;
+		}
+		e.preventDefault();
+	});
+	$(document).keyup(function(e)
+	{
+		switch (e.which)
+		{
+			case 37: // left
+				if (!players[current_focused_player].ai)
+					players[current_focused_player].stop();
+				key_controls.left = false;
+				break;
+			case 38: // up
+				if (!players[current_focused_player].ai)
+					players[current_focused_player].stop();
+				key_controls.up = false;
+				break;
+			case 39: // right
+				if (!players[current_focused_player].ai)
+					players[current_focused_player].stop();
+				key_controls.right = false;
+				break;
+			case 40: // down
+				if (!players[current_focused_player].ai)
+					players[current_focused_player].stop();
+				key_controls.down = false;
+				break;
+			default:
+				return;
+		}
+		e.preventDefault();
+	});
+}
+
+function createSkyBox()
+{
+	var geometry = new THREE.SphereGeometry(SKYBOX_MAX_RADIUS, 10, 10);
+	var uniforms = {
+		texture:
+		{
+			type: 't',
+			value: skybox_texture
+		}
+	};
+	var material = new THREE.ShaderMaterial(
+	{
+		uniforms: uniforms,
+		vertexShader: document.getElementById('sky-vertex').textContent,
+		fragmentShader: document.getElementById('sky-fragment').textContent
+	});
+	skyBox = new THREE.Mesh(geometry, material);
+	skyBox.scale.set(-1, 1, 1);
+	skyBox.eulerOrder = 'XZY';
+	skyBox.renderDepth = 1000.0;
+	scene.add(skyBox);
+}
+
 function add_balls_to_scene()
 {
 	for (var obj in objects)
@@ -149,149 +321,78 @@ function add_bounding_cube()
 	scene.add(bounding_cube);
 }
 
-function get_random_color()
+function zoom_to(player) // player is a number
 {
-	var palette = [
-		0x95FE03,
-		0x3BAEE0,
-		0x9C5EDB,
-		0xE85EC3,
-		0xF8345A,
-		0xE2704B,
-		0xFCB227,
-		0xCFFF37,
-		0x37FF81,
-		0x4A00B4,
-		0xB4003C,
-		0x1CC095
+	target_angles = [
+		[0, Math.PI / 2],
+		[0, Math.PI * 3 / 2],
+		[-Math.PI / 2, Math.PI],
+		[Math.PI / 2, Math.PI],
+		[0, Math.PI],
+		[0, 0]
 	]
-	return palette[Math.round(Math.random() * palette.length)];
+	rotation_intermediate = target_angles[player];
 }
 
-function log()
+function animate()
 {
-	if (PRINT_LOGS)
-		for (var i = 0; i < arguments.length; i++)
-			console.log(arguments[i]);
+	requestAnimationFrame(animate);
+	for (var obj in objects)
+		objects[obj].update()
+	for (var player in players)
+	{
+		instructions = []
+		for (var obj in objects)
+			instructions.push(players[player].ai_intent(objects[obj]));
+		players[player].ai_exec(instructions);
+		players[player].update();
+	}
+	if (key_controls.left && !players[current_focused_player].ai)
+		players[current_focused_player].accelerate(new THREE.Vector2(-PLAYER_ACCEL_CONSTANT, 0));
+	if (key_controls.right && !players[current_focused_player].ai)
+		players[current_focused_player].accelerate(new THREE.Vector2(PLAYER_ACCEL_CONSTANT, 0));
+	if (key_controls.up && !players[current_focused_player].ai)
+		players[current_focused_player].accelerate(new THREE.Vector2(0, PLAYER_ACCEL_CONSTANT));
+	if (key_controls.down && !players[current_focused_player].ai)
+		players[current_focused_player].accelerate(new THREE.Vector2(0, -PLAYER_ACCEL_CONSTANT));
+	if (rotation_intermediate !== undefined)
+	{
+		var cur_pos = get_lat_long();
+		var diff_lat = rotation_intermediate[0] - cur_pos[0];
+		var diff_long = 0;
+		if (Math.abs(rotation_intermediate[1] - cur_pos[1]) > Math.abs(rotation_intermediate[1] - cur_pos[1] + Math.PI * 2)) //find the shortest path
+			diff_long = -(rotation_intermediate[1] - cur_pos[1] - Math.PI * 2);
+		else
+			diff_long = rotation_intermediate[1] - cur_pos[1];
+		if (rotation_intermediate[1] == 0)
+		{
+			if (Math.abs(Math.PI * 2 - cur_pos[1]) > Math.abs(Math.PI * 2 - cur_pos[1] + Math.PI * 2)) //find the shortest path
+				diff_long2 = -(Math.PI * 2 - cur_pos[1] - Math.PI * 2);
+			else
+				diff_long2 = Math.PI * 2 - cur_pos[1];
+			diff_long = diff_long < diff_long2 ? diff_long : diff_long2;
+		}
+		if (Math.abs(diff_lat) > 0.01)
+		{
+			if (Math.abs(diff_lat) < ROTATION_STEP)
+				controls.rotateUp(diff_lat);
+			else
+				controls.rotateUp(ROTATION_STEP * Math.abs(diff_lat) / diff_lat);
+		}
+		if (Math.abs(diff_long) > 0.01)
+		{
+			if (Math.abs(diff_long) < ROTATION_STEP)
+				controls.rotateLeft(-diff_long);
+			else
+				controls.rotateLeft(ROTATION_STEP * -Math.abs(diff_long) / diff_long);
+		}
+		if (Math.abs(diff_lat) < 0.01 && Math.abs(diff_long) < 0.01)
+			rotation_intermediate = undefined;
+	}
+	controls.update();
+	renderer.render(scene, camera);
 }
-
-function Audio()
-{
-	this.sound = {};
-	this.ctx = global_audio_context;
-	this.mainVolume = this.ctx.createGain();
-	this.mainVolume.connect(this.ctx.destination);
-	this.buffers = [];
-	this.current_playing = -1;
-	this.sound.volume = this.ctx.createGain();
-	this.playing = false;
-	this.addSound = function(data, callback) //data from XMLHttpRequest
-		{
-			var self = this;
-			this.ctx.decodeAudioData(data, function onSuccess(buffer)
-			{
-				self.buffers.push(buffer);
-				callback();
-			}, function onFailure()
-			{});
-		}
-	this.set_up_audiobuffersourcenode = function()
-	{
-		this.sound.source = this.ctx.createBufferSource();
-		this.sound.panner = this.ctx.createPanner();
-	}
-	this.playOneFlat = function(callback)
-	{
-		this.current_playing++;
-		this.set_up_audiobuffersourcenode();
-		this.sound.volume.connect(this.mainVolume);
-		this.sound.source.connect(this.sound.volume);
-		this.stop();
-		if (this.buffers[this.current_playing] !== undefined)
-		{
-			this.sound.source.buffer = this.buffers[this.current_playing];
-			this.sound.source.start(this.ctx.currentTime);
-			this.playing = true;
-			var self = this;
-			if (callback !== undefined)
-				this.sound.source.onended(function()
-				{
-					self.playing = false;
-					callback();
-				});
-		}
-	}
-	this.playAllLoopFlat = function()
-		{
-			this.current_playing++;
-			this.set_up_audiobuffersourcenode();
-			this.sound.volume.connect(this.mainVolume);
-			this.sound.source.connect(this.sound.volume);
-			this.stop();
-			if (this.buffers.length <= 0)
-				return false;
-			this.playing = true;
-			if (this.buffers[this.current_playing] == undefined)
-			{
-				this.startOver();
-				this.current_playing++;
-			}
-			this.sound.source.buffer = this.buffers[this.current_playing];
-			this.sound.source.start(this.ctx.currentTime);
-			var self = this;
-			this.sound.source.onended = function()
-			{
-				self.playing = false;
-				self.playAllLoopFlat();
-			};
-		}
-		/*
-		TODO: Fix this
-
-		this.playOnePositional = function(object_position,object_orientation,listener_position, listener_orientation, callback){ //listener will be the camera, object will be the ball
-			this.current_playing++;
-			this.stop();
-			this.set_up_audiobuffersourcenode();
-			this.sound.volume.connect(this.sound.panner);
-			this.sound.panner.connect(this.mainVolume);
-			this.sound.panner.rolloffFactor = 0;
-			this.sound.panner.coneInnerAngle = 360;
-			this.sound.panner.setPosition(object_position.x,object_position.y,object_position.z);
-			//this.sound.panner.setOrientation(object_orientation.x,object_orientation.y,object_orientation.z);
-			this.ctx.listener.setPosition(listener_position.x,listener_position.y,listener_position.z);
-			//this.ctx.listener.setOrientation(listener_orientation[0].x,listener_orientation[0].y,listener_orientation[0].z,listener_orientation[1].x,listener_orientation[1].y,listener_orientation[1].z);
-
-			if (this.buffers[this.current_playing] !== undefined)
-			{
-				this.playing = true;
-				this.sound.source.buffer = this.buffers[this.current_playing];
-				this.sound.source.start(this.ctx.currentTime);
-				var self = this;
-				this.sound.source.onended = function(){self.playing = false;};
-			}
-		}*/
-	this.startOver = function()
-	{
-		this.current_playing = -1;
-	}
-	this.stop = function()
-	{
-		this.sound.source.onended = function() {};
-		if (this.playing && this.sound.source !== undefined)
-		{
-			try
-			{
-				this.sound.source.stop();
-			}
-			catch (DOMException)
-			{
-				log("Audio error");
-			}
-		}
-		this.playing = false;
-	}
-}
-
+//Class constructors
 function Ball(position, velocity, color)
 {
 	var RADIUS = 100;
@@ -578,10 +679,10 @@ function Player(num, color, enabled, ai)
 			break;
 	}
 	this.accelerate = function(acc_vec) //THREE.Vector2
-		{
-			this.velocity.x += acc_vec.x;
-			this.velocity.y += acc_vec.y;
-		}
+	{
+		this.velocity.x += acc_vec.x;
+		this.velocity.y += acc_vec.y;
+	}
 	this.stop = function()
 	{
 		this.stop_x();
@@ -845,159 +946,128 @@ function Player(num, color, enabled, ai)
 	}
 }
 
-function zoom_to(player) // player is a number
-	{
-		target_angles = [
-			[0, Math.PI / 2],
-			[0, Math.PI * 3 / 2],
-			[-Math.PI / 2, Math.PI],
-			[Math.PI / 2, Math.PI],
-			[0, Math.PI],
-			[0, 0]
-		]
-		rotation_intermediate = target_angles[player];
-	}
-
-function bind_keys()
+function Audio()
 {
-	$(document).keydown(function(e)
+	this.sound = {};
+	this.ctx = global_audio_context;
+	this.mainVolume = this.ctx.createGain();
+	this.mainVolume.connect(this.ctx.destination);
+	this.buffers = [];
+	this.current_playing = -1;
+	this.sound.volume = this.ctx.createGain();
+	this.playing = false;
+	this.addSound = function(data, callback) //data from XMLHttpRequest
 	{
-		switch (e.which)
+		var self = this;
+		this.ctx.decodeAudioData(data, function onSuccess(buffer)
 		{
-			case 48:
-				current_focused_player = 0;
-				zoom_to(0);
-				break;
-			case 49:
-				current_focused_player = 1;
-				zoom_to(1);
-				break;
-			case 50:
-				current_focused_player = 2;
-				zoom_to(2);
-				break;
-			case 51:
-				current_focused_player = 3;
-				zoom_to(3);
-				break;
-			case 52:
-				current_focused_player = 4;
-				zoom_to(4);
-				break;
-			case 53:
-				current_focused_player = 5;
-				zoom_to(5);
-				break;
-			case 8: //backspace
-				zoom_to(current_focused_player);
-				break;
-			case 187:
-				controls.dollyIn(1.1);
-				break;
-			case 189:
-				controls.dollyOut(1.1);
-				break;
-			case 37: // left
-				key_controls.left = true;
-				break;
-			case 38: // up
-				key_controls.up = true;
-				break;
-			case 39: // right
-				key_controls.right = true
-				break;
-			case 40: // down
-				key_controls.down = true;
-				break;
-			default:
-				return;
-		}
-		e.preventDefault();
-	});
-	$(document).keyup(function(e)
+			self.buffers.push(buffer);
+			callback();
+		}, function onFailure()
+		{});
+	}
+	this.set_up_audiobuffersourcenode = function()
 	{
-		switch (e.which)
+		this.sound.source = this.ctx.createBufferSource();
+		this.sound.panner = this.ctx.createPanner();
+	}
+	this.playOneFlat = function(callback)
+	{
+		this.current_playing++;
+		this.set_up_audiobuffersourcenode();
+		this.sound.volume.connect(this.mainVolume);
+		this.sound.source.connect(this.sound.volume);
+		this.stop();
+		if (this.buffers[this.current_playing] !== undefined)
 		{
-			case 37: // left
-				if (!players[current_focused_player].ai)
-					players[current_focused_player].stop();
-				key_controls.left = false;
-				break;
-			case 38: // up
-				if (!players[current_focused_player].ai)
-					players[current_focused_player].stop();
-				key_controls.up = false;
-				break;
-			case 39: // right
-				if (!players[current_focused_player].ai)
-					players[current_focused_player].stop();
-				key_controls.right = false;
-				break;
-			case 40: // down
-				if (!players[current_focused_player].ai)
-					players[current_focused_player].stop();
-				key_controls.down = false;
-				break;
-			default:
-				return;
+			this.sound.source.buffer = this.buffers[this.current_playing];
+			this.sound.source.start(this.ctx.currentTime);
+			this.playing = true;
+			var self = this;
+			if (callback !== undefined)
+				this.sound.source.onended(function()
+				{
+					self.playing = false;
+					callback();
+				});
 		}
-		e.preventDefault();
-	});
+	}
+	this.playAllLoopFlat = function()
+		{
+			this.current_playing++;
+			this.set_up_audiobuffersourcenode();
+			this.sound.volume.connect(this.mainVolume);
+			this.sound.source.connect(this.sound.volume);
+			this.stop();
+			if (this.buffers.length <= 0)
+				return false;
+			this.playing = true;
+			if (this.buffers[this.current_playing] == undefined)
+			{
+				this.startOver();
+				this.current_playing++;
+			}
+			this.sound.source.buffer = this.buffers[this.current_playing];
+			this.sound.source.start(this.ctx.currentTime);
+			var self = this;
+			this.sound.source.onended = function()
+			{
+				self.playing = false;
+				self.playAllLoopFlat();
+			};
+		}
+		/*
+		TODO: Fix this
+
+		this.playOnePositional = function(object_position,object_orientation,listener_position, listener_orientation, callback){ //listener will be the camera, object will be the ball
+			this.current_playing++;
+			this.stop();
+			this.set_up_audiobuffersourcenode();
+			this.sound.volume.connect(this.sound.panner);
+			this.sound.panner.connect(this.mainVolume);
+			this.sound.panner.rolloffFactor = 0;
+			this.sound.panner.coneInnerAngle = 360;
+			this.sound.panner.setPosition(object_position.x,object_position.y,object_position.z);
+			//this.sound.panner.setOrientation(object_orientation.x,object_orientation.y,object_orientation.z);
+			this.ctx.listener.setPosition(listener_position.x,listener_position.y,listener_position.z);
+			//this.ctx.listener.setOrientation(listener_orientation[0].x,listener_orientation[0].y,listener_orientation[0].z,listener_orientation[1].x,listener_orientation[1].y,listener_orientation[1].z);
+
+			if (this.buffers[this.current_playing] !== undefined)
+			{
+				this.playing = true;
+				this.sound.source.buffer = this.buffers[this.current_playing];
+				this.sound.source.start(this.ctx.currentTime);
+				var self = this;
+				this.sound.source.onended = function(){self.playing = false;};
+			}
+		}*/
+	this.startOver = function()
+	{
+		this.current_playing = -1;
+	}
+	this.stop = function()
+	{
+		this.sound.source.onended = function() {};
+		if (this.playing && this.sound.source !== undefined)
+		{
+			try
+			{
+				this.sound.source.stop();
+			}
+			catch (DOMException)
+			{
+				log("Audio error");
+			}
+		}
+		this.playing = false;
+	}
 }
-
-function setup_scene()
+// Helper methods
+function log()
 {
-	scene = new THREE.Scene();
-	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, SKYBOX_MAX_RADIUS * 2);
-	camera.position.z = 1000;
-	var camera_positions = [
-		[new THREE.Vector3(-MAX_BOUND, 0, 0), players[0].color],
-		[new THREE.Vector3(-MAX_BOUND, MAX_BOUND / 2, 0), players[0].color],
-		[new THREE.Vector3(-MAX_BOUND, -MAX_BOUND / 2, 0), players[0].color],
-		[new THREE.Vector3(-MAX_BOUND, 0, MAX_BOUND / 2), players[0].color],
-		[new THREE.Vector3(-MAX_BOUND, 0, -MAX_BOUND / 2), players[0].color],
-		[new THREE.Vector3(MAX_BOUND, 0, 0), players[1].color],
-		[new THREE.Vector3(MAX_BOUND, MAX_BOUND / 2, 0), players[1].color],
-		[new THREE.Vector3(MAX_BOUND, -MAX_BOUND / 2, 0), players[1].color],
-		[new THREE.Vector3(MAX_BOUND, 0, MAX_BOUND / 2), players[1].color],
-		[new THREE.Vector3(MAX_BOUND, 0, -MAX_BOUND / 2), players[1].color],
-		[new THREE.Vector3(0, -MAX_BOUND, 0), players[2].color],
-		[new THREE.Vector3(MAX_BOUND / 2, -MAX_BOUND, 0), players[2].color],
-		[new THREE.Vector3(-MAX_BOUND / 2, -MAX_BOUND, 0), players[2].color],
-		[new THREE.Vector3(0, -MAX_BOUND, MAX_BOUND / 2), players[2].color],
-		[new THREE.Vector3(0, -MAX_BOUND, -MAX_BOUND / 2), players[2].color],
-		[new THREE.Vector3(0, MAX_BOUND, 0), players[3].color],
-		[new THREE.Vector3(MAX_BOUND / 2, MAX_BOUND, 0), players[3].color],
-		[new THREE.Vector3(-MAX_BOUND / 2, MAX_BOUND, 0), players[3].color],
-		[new THREE.Vector3(0, MAX_BOUND, MAX_BOUND / 2), players[3].color],
-		[new THREE.Vector3(0, MAX_BOUND, -MAX_BOUND / 2), players[3].color],
-		[new THREE.Vector3(0, 0, MAX_BOUND), players[4].color],
-		[new THREE.Vector3(MAX_BOUND / 2, 0, MAX_BOUND), players[4].color],
-		[new THREE.Vector3(-MAX_BOUND / 2, 0, MAX_BOUND), players[4].color],
-		[new THREE.Vector3(0, MAX_BOUND / 2, MAX_BOUND), players[4].color],
-		[new THREE.Vector3(0, -MAX_BOUND / 2, MAX_BOUND), players[4].color],
-		[new THREE.Vector3(0, 0, -MAX_BOUND), players[5].color],
-		[new THREE.Vector3(MAX_BOUND / 2, 0, -MAX_BOUND), players[5].color],
-		[new THREE.Vector3(-MAX_BOUND / 2, 0, -MAX_BOUND), players[5].color],
-		[new THREE.Vector3(0, MAX_BOUND / 2, -MAX_BOUND), players[5].color],
-		[new THREE.Vector3(0, -MAX_BOUND / 2, -MAX_BOUND), players[5].color]
-	];
-	for (pos in camera_positions)
-	{
-		var center = new THREE.PointLight(camera_positions[pos][1], 3, MAX_BOUND);
-		center.position.set(camera_positions[pos][0].x, camera_positions[pos][0].y, camera_positions[pos][0].z);
-		scene.add(center);
-	}
-	renderer = new THREE.WebGLRenderer(
-	{
-		canvas: document.getElementById("c")
-	});
-	renderer.autoClear = true;
-	renderer.setSize($("#c").width(), $("#c").height());
-	controls = new THREE.OrbitControls(camera, renderer.domElement);
-	controls.maxDistance = SKYBOX_MAX_RADIUS;
-	controls.noPan = true;
-	controls.dollyOut(900);
+	if (PRINT_LOGS)
+		for (var i = 0; i < arguments.length; i++)
+			console.log(arguments[i]);
 }
 
 function get_lat_long()
@@ -1023,102 +1093,39 @@ function get_lat_long()
 	return [latitude, longitude];
 }
 
-function createSkyBox()
+function checkCollisions(mesh, collidableMeshList) // http://stackoverflow.com/questions/11473755/how-to-detect-collision-in-three-js
 {
-	var geometry = new THREE.SphereGeometry(SKYBOX_MAX_RADIUS, 10, 10);
-	var uniforms = {
-		texture:
-		{
-			type: 't',
-			value: skybox_texture
-		}
-	};
-	var material = new THREE.ShaderMaterial(
+	for (var vertexIndex = 0; vertexIndex < mesh.geometry.vertices.length; vertexIndex++)
 	{
-		uniforms: uniforms,
-		vertexShader: document.getElementById('sky-vertex').textContent,
-		fragmentShader: document.getElementById('sky-fragment').textContent
-	});
-	skyBox = new THREE.Mesh(geometry, material);
-	skyBox.scale.set(-1, 1, 1);
-	skyBox.eulerOrder = 'XZY';
-	skyBox.renderDepth = 1000.0;
-	scene.add(skyBox);
+		var localVertex = mesh.geometry.vertices[vertexIndex].clone();
+		var globalVertex = localVertex.applyMatrix4(mesh.matrix);
+		var directionVector = globalVertex.sub(mesh.position);
+		var ray = new THREE.Raycaster(mesh.position, directionVector.clone().normalize());
+		var collisionResults = ray.intersectObjects(collidableMeshList);
+		if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length())
+		{
+			log("collision")
+			return true;
+		}
+	}
+	return false;
 }
 
-function checkCollisions(mesh, collidableMeshList) // http://stackoverflow.com/questions/11473755/how-to-detect-collision-in-three-js
-	{
-		for (var vertexIndex = 0; vertexIndex < mesh.geometry.vertices.length; vertexIndex++)
-		{
-			var localVertex = mesh.geometry.vertices[vertexIndex].clone();
-			var globalVertex = localVertex.applyMatrix4(mesh.matrix);
-			var directionVector = globalVertex.sub(mesh.position);
-			var ray = new THREE.Raycaster(mesh.position, directionVector.clone().normalize());
-			var collisionResults = ray.intersectObjects(collidableMeshList);
-			if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length())
-			{
-				log("collision")
-				return true;
-			}
-		}
-		return false;
-	}
-
-function animate()
+function get_random_color()
 {
-	requestAnimationFrame(animate);
-	for (var obj in objects)
-		objects[obj].update()
-	for (var player in players)
-	{
-		instructions = []
-		for (var obj in objects)
-			instructions.push(players[player].ai_intent(objects[obj]));
-		players[player].ai_exec(instructions);
-		players[player].update();
-	}
-	if (key_controls.left && !players[current_focused_player].ai)
-		players[current_focused_player].accelerate(new THREE.Vector2(-PLAYER_ACCEL_CONSTANT, 0));
-	if (key_controls.right && !players[current_focused_player].ai)
-		players[current_focused_player].accelerate(new THREE.Vector2(PLAYER_ACCEL_CONSTANT, 0));
-	if (key_controls.up && !players[current_focused_player].ai)
-		players[current_focused_player].accelerate(new THREE.Vector2(0, PLAYER_ACCEL_CONSTANT));
-	if (key_controls.down && !players[current_focused_player].ai)
-		players[current_focused_player].accelerate(new THREE.Vector2(0, -PLAYER_ACCEL_CONSTANT));
-	if (rotation_intermediate !== undefined)
-	{
-		var cur_pos = get_lat_long();
-		var diff_lat = rotation_intermediate[0] - cur_pos[0];
-		var diff_long = 0;
-		if (Math.abs(rotation_intermediate[1] - cur_pos[1]) > Math.abs(rotation_intermediate[1] - cur_pos[1] + Math.PI * 2)) //find the shortest path
-			diff_long = -(rotation_intermediate[1] - cur_pos[1] - Math.PI * 2);
-		else
-			diff_long = rotation_intermediate[1] - cur_pos[1];
-		if (rotation_intermediate[1] == 0)
-		{
-			if (Math.abs(Math.PI * 2 - cur_pos[1]) > Math.abs(Math.PI * 2 - cur_pos[1] + Math.PI * 2)) //find the shortest path
-				diff_long2 = -(Math.PI * 2 - cur_pos[1] - Math.PI * 2);
-			else
-				diff_long2 = Math.PI * 2 - cur_pos[1];
-			diff_long = diff_long < diff_long2 ? diff_long : diff_long2;
-		}
-		if (Math.abs(diff_lat) > 0.01)
-		{
-			if (Math.abs(diff_lat) < ROTATION_STEP)
-				controls.rotateUp(diff_lat);
-			else
-				controls.rotateUp(ROTATION_STEP * Math.abs(diff_lat) / diff_lat);
-		}
-		if (Math.abs(diff_long) > 0.01)
-		{
-			if (Math.abs(diff_long) < ROTATION_STEP)
-				controls.rotateLeft(-diff_long);
-			else
-				controls.rotateLeft(ROTATION_STEP * -Math.abs(diff_long) / diff_long);
-		}
-		if (Math.abs(diff_lat) < 0.01 && Math.abs(diff_long) < 0.01)
-			rotation_intermediate = undefined;
-	}
-	controls.update();
-	renderer.render(scene, camera);
+	var palette = [
+		0x95FE03,
+		0x3BAEE0,
+		0x9C5EDB,
+		0xE85EC3,
+		0xF8345A,
+		0xE2704B,
+		0xFCB227,
+		0xCFFF37,
+		0x37FF81,
+		0x4A00B4,
+		0xB4003C,
+		0x1CC095
+	]
+	return palette[Math.round(Math.random() * palette.length)];
 }
