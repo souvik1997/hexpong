@@ -75,6 +75,16 @@ function download_all(callback)
 		}
 	},
 	{
+		url: "assets/sounds/Rolemusic_-_01_-_Bacterial_Love.mp3",
+		responseType: "arraybuffer",
+		exec: function(data)
+		{
+			log("downloaded bg sound #3");
+			NProgress.inc();
+			bg_audio.addSound(data);
+		}
+	},
+	{
 		url: "assets/sounds/beep.mp3",
 		responseType: "arraybuffer",
 		exec: function(data)
