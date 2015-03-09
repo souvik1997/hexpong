@@ -1,0 +1,8 @@
+assets/sounds/beep.mp3 copyright information:
+
+Received from http://www.flashkit.com/soundfx/Electronic/Arcade/Arcade_S-wwwbeat-8531/index.php
+
+Author: www.beatsuite.com
+Website: http://www.beatsuite.com
+License: Linkware
+Description: Low-pitch arcade style button sound. . Ideal for Animations, Videos, Websites, CD-ROM, DVD, Interactive Menu's and Computer Games. More Flash Sounds, Flash Music Loops and Royalty Free Music from www.beatsuite.com.Please provide a link back to www.beatsuite.com if you use any of our sounds. Thank you.

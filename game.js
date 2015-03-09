@@ -20,24 +20,99 @@ var key_controls = {
 	up: false,
 	down: false
 }
+var bg_audio = new Audio();
+var skybox_texture;
+var sfx_bounce;
+var sfx_miss;
 $(document).ready(function()
 {
-	init();
-	bind_keys();
-	createSkyBox();
+	download_all(function()
+		{
+			setup_scene();
+			bind_keys();
+			createSkyBox();
+			add_balls_to_scene();
+			add_players_to_scene()
+			add_bounding_cube();
+			animate();
+		});	
+});
+function download_all(callback)
+{	
+	skybox_texture = THREE.ImageUtils.loadTexture('assets/skybox.jpg');
+	
+	urls = [
+		{
+			url: "assets/sounds/Eric_Skiff_-_03_-_Chibi_Ninja.mp3", 
+			responseType: "arraybuffer",
+			exec:function(data){
+				console.log("downloaded bg sound");
+				bg_audio.addSound(data, function()
+					{
+						bg_audio.playAllLoopFlat();
+					});
+			}
+		},
+		{
+			url: "assets/sounds/beep.mp3", 
+			responseType: "arraybuffer",
+			exec:function(data){
+				console.log("downloaded sfx sound");
+				sfx_bounce = data;
+				(new AudioContext()).decodeAudioData(data, function onSuccess(buffer){
+					for (obj in objects)
+					{
+						objects[obj].audio_controller = new Audio();
+						objects[obj].audio_controller.buffers.push(buffer);
+					}
+				},function onFailure()
+				{
+
+				});
+			}
+		},
+	];
+	var xhr_callback = function(e){		
+		urls[0].exec(this.response);
+		urls.shift();
+		if (urls.length == 0)
+		{
+			callback();
+		}
+		else
+		{
+			var request = new XMLHttpRequest();
+			request.open("GET",urls[0].url,true);
+			request.responseType = urls[0].responseType;
+			request.onload = xhr_callback;
+			request.send();
+		}
+	};
+	var request = new XMLHttpRequest();
+	request.open("GET",urls[0].url,true);
+	request.responseType = urls[0].responseType;
+	request.onload = xhr_callback;
+	request.send();
+}
+function add_balls_to_scene()
+{
 	for (var obj in objects)
 		scene.add(objects[obj].mesh);
+}
+function add_players_to_scene()
+{
 	for (var player in players)
 		if (players[player].enabled)
 			scene.add(players[player].mesh);
+}
+function add_bounding_cube()
+{
 	bounding_cube = new THREE.BoxHelper(new THREE.Mesh(
 		new THREE.BoxGeometry(MAX_BOUND * 2, MAX_BOUND * 2, MAX_BOUND * 2, 2, 2),
 		new THREE.LineBasicMaterial()));
 	bounding_cube.material.color.set(0x321087);
 	scene.add(bounding_cube);
-	animate();
-});
-
+}
 function get_random_color()
 {
 	var palette = [
@@ -63,7 +138,98 @@ function log()
 		for (var i = 0; i < arguments.length; i++)
 			console.log(arguments[i]);
 }
+function Audio()
+{
+	this.sound = {};
+	this.ctx = new AudioContext();
+	this.mainVolume = this.ctx.createGain();
+	this.mainVolume.connect(this.ctx.destination);
+	this.buffers = [];
+	this.current_playing = -1;
+	this.sound.volume = this.ctx.createGain();
+	this.playing = false;
+	this.addSound = function(data,callback) //data from XMLHttpRequest
+	{
+		var self = this;
+		this.ctx.decodeAudioData(data, function onSuccess(buffer)
+		{
+			self.buffers.push(buffer);
+			callback();
+		}, function onFailure()
+		{
+		});
+	}
+	this.set_up_audiobuffersourcenode = function()
+	{		
+		this.sound.source = this.ctx.createBufferSource();
+		this.sound.panner = this.ctx.createPanner();
+	}
+	this.playOneFlat = function(callback){
+		this.current_playing++;
+		this.set_up_audiobuffersourcenode();
+		this.sound.volume.connect(this.mainVolume);
+		this.sound.source.connect(this.sound.volume);
+		if (this.buffers[this.current_playing] !== undefined)
+		{
+			this.sound.source.buffer = this.buffers[this.current_playing];
+			this.sound.source.start(this.ctx.currentTime);
+			this.playing = true;
+			var self = this;
+			if (callback !== undefined)
+				this.sound.source.onended(function(){self.playing = false; callback();});
+		}
+	}
+	this.playAllLoopFlat = function(){
+		this.current_playing++;
+		this.set_up_audiobuffersourcenode();
+		this.sound.volume.connect(this.mainVolume);
+		this.sound.source.connect(this.sound.volume);
+		if (this.buffers.length <= 0)
+			return false;
+		this.playing = true;
+		if (this.buffers[this.current_playing] == undefined)
+		{
+			this.startOver();
+			this.current_playing++;
+		}
+		this.sound.source.buffer = this.buffers[this.current_playing];
+		this.sound.source.start(this.ctx.currentTime);
+		var self = this;
+		this.sound.source.onended = function(){self.playing = false; self.playAllLoopFlat();};
+	}
+	this.playOnePositional = function(object_position,object_orientation,listener_position, listener_orientation, callback){ //listener will be the camera, object will be the ball
+		this.current_playing++;
+		this.stop();
+		this.set_up_audiobuffersourcenode();
+		this.sound.volume.connect(this.sound.panner);
+		this.sound.panner.connect(this.mainVolume);
+		this.sound.panner.setPosition(object_position.x,object_position.y,object_position.z);
+		//this.sound.panner.setOrientation(object_orientation.x,object_orientation.y,object_orientation.z);
+		this.ctx.listener.setPosition(listener_position.x,listener_position.y,listener_position.z);
+		//this.ctx.listener.setOrientation(listener_orientation[0].x,listener_orientation[0].y,listener_orientation[0].z,listener_orientation[1].x,listener_orientation[1].y,listener_orientation[1].z);	
 
+		if (this.buffers[this.current_playing] !== undefined)
+		{
+			this.playing = true;
+			this.sound.source.buffer = this.buffers[this.current_playing];
+			this.sound.source.start(this.ctx.currentTime);
+			var self = this;
+			this.sound.source.onended = function(){self.playing = false;};
+		}
+	}
+
+	this.startOver = function()
+	{
+		this.current_playing = -1;
+	}
+	this.stop = function(){
+		if (this.playing && this.sound.source !== undefined)
+		{
+			this.sound.source.stop();
+		}
+		this.playing = false;
+	}
+}
 function Ball(position, velocity, color)
 {
 	var RADIUS = 100;
@@ -73,9 +239,36 @@ function Ball(position, velocity, color)
 	this.position = position;
 	this.position0 = position.clone();
 	this.velocity = velocity;
+	this.audio_controller;
 	this.sphere = function()
 	{
 		return THREE.Sphere(position, RADIUS)
+	}
+	this.bounce_effect = function()
+	{				
+		if (this.audio_controller !== undefined)
+		{
+			this.audio_controller.startOver();		
+			this.mesh.updateMatrixWorld();
+			var object_position = new THREE.Vector3();
+			object_position.setFromMatrixPosition(this.mesh.matrixWorld);
+			var listener_position = new THREE.Vector3();
+			camera.updateMatrixWorld();
+			listener_position.setFromMatrixPosition(camera.matrixWorld);
+			var object_orientation = new THREE.Vector3();
+			var object_matrix = this.mesh.clone().matrixWorld;
+			object_matrix.elements[12] = object_matrix.elements[13] = object_matrix.elements[14] = 0;
+			object_orientation.applyProjection(object_matrix);
+			object_orientation.normalize();
+			var listener_orientation = [new THREE.Vector3(0,0,1),new THREE.Vector3(0,-1,0)];
+			var camera_matrix = camera.clone().matrix;
+			camera_matrix.elements[12] = camera_matrix.elements[13] = camera_matrix.elements[14] = 0;
+			listener_orientation[0].applyProjection(camera_matrix);
+			listener_orientation[0].normalize();
+			listener_orientation[1].applyProjection(camera_matrix);
+			listener_orientation[1].normalize();
+			this.audio_controller.playOnePositional(object_position,object_orientation,listener_position,listener_orientation);
+		}
 	}
 	this.mesh = new THREE.Mesh(
 		new THREE.SphereGeometry(RADIUS),
@@ -96,7 +289,7 @@ function Ball(position, velocity, color)
 		}
 		else
 		{
-			this.position.add(velocity);
+			this.position.add(velocity);			
 			if (this.position.x >= MAX_BOUND)
 			{
 				this.position.x = MAX_BOUND;
@@ -111,6 +304,7 @@ function Ball(position, velocity, color)
 						this.velocity.x *= BOUNCINESS;
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
+						this.bounce_effect();
 					}
 					else
 					{
@@ -132,6 +326,7 @@ function Ball(position, velocity, color)
 						this.velocity.x *= BOUNCINESS;
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
+						this.bounce_effect();
 					}
 					else
 					{
@@ -153,6 +348,7 @@ function Ball(position, velocity, color)
 						this.velocity.x *= BOUNCINESS;
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
+						this.bounce_effect();
 					}
 					else
 					{
@@ -174,6 +370,7 @@ function Ball(position, velocity, color)
 						this.velocity.x *= BOUNCINESS;
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
+						this.bounce_effect();
 					}
 					else
 					{
@@ -195,6 +392,7 @@ function Ball(position, velocity, color)
 						this.velocity.x *= BOUNCINESS;
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
+						this.bounce_effect();
 					}
 					else
 					{
@@ -216,6 +414,7 @@ function Ball(position, velocity, color)
 						this.velocity.x *= BOUNCINESS;
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
+						this.bounce_effect();
 					}
 					else
 					{
@@ -570,17 +769,17 @@ function Player(num, color, enabled, ai)
 }
 
 function zoom_to(player) // player is a number
-	{
-		target_angles = [
-			[0, Math.PI / 2],
-			[0, Math.PI * 3 / 2],
-			[-Math.PI / 2, Math.PI],
-			[Math.PI / 2, Math.PI],
-			[0, Math.PI],
-			[0, 0]
-		]
-		rotation_intermediate = target_angles[player];
-	}
+{
+	target_angles = [
+		[0, Math.PI / 2],
+		[0, Math.PI * 3 / 2],
+		[-Math.PI / 2, Math.PI],
+		[Math.PI / 2, Math.PI],
+		[0, Math.PI],
+		[0, 0]
+	]
+	rotation_intermediate = target_angles[player];
+}
 
 function bind_keys()
 {
@@ -669,7 +868,7 @@ function bind_keys()
 	});
 }
 
-function init()
+function setup_scene()
 {
 	scene = new THREE.Scene();
 	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, SKYBOX_MAX_RADIUS * 2);
@@ -712,14 +911,13 @@ function init()
 		center.position.set(camera_positions[pos][0].x, camera_positions[pos][0].y, camera_positions[pos][0].z);
 		scene.add(center);
 	}
-	renderer = new THREE.WebGLRenderer();
+	renderer = new THREE.WebGLRenderer({canvas:document.getElementById("c")});
 	renderer.autoClear = true;
-	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setSize($("#c").width(), $("#c").height());
 	controls = new THREE.OrbitControls(camera, renderer.domElement);
 	controls.maxDistance = SKYBOX_MAX_RADIUS;
 	controls.noPan = true;
 	controls.dollyOut(900);
-	$("body").append(renderer.domElement);
 }
 
 function get_lat_long()
@@ -752,7 +950,7 @@ function createSkyBox()
 		texture:
 		{
 			type: 't',
-			value: THREE.ImageUtils.loadTexture('assets/skybox.jpg')
+			value: skybox_texture
 		}
 	};
 	var material = new THREE.ShaderMaterial(
