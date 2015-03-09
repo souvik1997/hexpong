@@ -20,6 +20,7 @@ var key_controls = {
 	up: false,
 	down: false
 }
+var global_audio_context = new AudioContext();
 var bg_audio = new Audio();
 var skybox_texture;
 var sfx_bounce;
@@ -46,24 +47,53 @@ function download_all(callback)
 			url: "assets/sounds/Eric_Skiff_-_03_-_Chibi_Ninja.mp3", 
 			responseType: "arraybuffer",
 			exec:function(data){
-				console.log("downloaded bg sound");
+				console.log("downloaded bg sound #1");
 				bg_audio.addSound(data, function()
 					{
+						bg_audio.sound.volume.gain.value = 0.2;
 						bg_audio.playAllLoopFlat();
 					});
+			}
+		},
+		{
+			url: "assets/sounds/BoxCat_Games_-_10_-_Epic_Song.mp3", 
+			responseType: "arraybuffer",
+			exec:function(data){
+				console.log("downloaded bg sound #2");
+				bg_audio.addSound(data);
 			}
 		},
 		{
 			url: "assets/sounds/beep.mp3", 
 			responseType: "arraybuffer",
 			exec:function(data){
-				console.log("downloaded sfx sound");
+				console.log("downloaded sfx sound #1");
 				sfx_bounce = data;
-				(new AudioContext()).decodeAudioData(data, function onSuccess(buffer){
+				global_audio_context.decodeAudioData(data, function onSuccess(buffer){
 					for (obj in objects)
 					{
-						objects[obj].audio_controller = new Audio();
-						objects[obj].audio_controller.buffers.push(buffer);
+						if (objects[obj].audio_controller === undefined)
+							objects[obj].audio_controller = new Audio();
+						objects[obj].audio_controller.buffers[0] = buffer;
+					}
+				},function onFailure()
+				{
+
+				});
+			}
+		},
+		{
+			url: "assets/sounds/explosion.mp3", 
+			responseType: "arraybuffer",
+			exec:function(data){
+				console.log("downloaded sfx sound #2");
+				sfx_bounce = data;
+				global_audio_context.decodeAudioData(data, function onSuccess(buffer){
+					for (obj in objects)
+					{
+						if (objects[obj].audio_controller === undefined)
+							objects[obj].audio_controller = new Audio();
+						objects[obj].audio_controller.buffers[1] = buffer;
 					}
 				},function onFailure()
 				{
@@ -141,7 +171,7 @@ function log()
 function Audio()
 {
 	this.sound = {};
-	this.ctx = new AudioContext();
+	this.ctx = global_audio_context;
 	this.mainVolume = this.ctx.createGain();
 	this.mainVolume.connect(this.ctx.destination);
 	this.buffers = [];
@@ -169,6 +199,7 @@ function Audio()
 		this.set_up_audiobuffersourcenode();
 		this.sound.volume.connect(this.mainVolume);
 		this.sound.source.connect(this.sound.volume);
+		this.stop();
 		if (this.buffers[this.current_playing] !== undefined)
 		{
 			this.sound.source.buffer = this.buffers[this.current_playing];
@@ -184,6 +215,7 @@ function Audio()
 		this.set_up_audiobuffersourcenode();
 		this.sound.volume.connect(this.mainVolume);
 		this.sound.source.connect(this.sound.volume);
+		this.stop();
 		if (this.buffers.length <= 0)
 			return false;
 		this.playing = true;
@@ -197,12 +229,17 @@ function Audio()
 		var self = this;
 		this.sound.source.onended = function(){self.playing = false; self.playAllLoopFlat();};
 	}
+	/*
+	TODO: Fix this
+
 	this.playOnePositional = function(object_position,object_orientation,listener_position, listener_orientation, callback){ //listener will be the camera, object will be the ball
 		this.current_playing++;
 		this.stop();
 		this.set_up_audiobuffersourcenode();
 		this.sound.volume.connect(this.sound.panner);
 		this.sound.panner.connect(this.mainVolume);
+		this.sound.panner.rolloffFactor = 0;
+		this.sound.panner.coneInnerAngle = 360;
 		this.sound.panner.setPosition(object_position.x,object_position.y,object_position.z);
 		//this.sound.panner.setOrientation(object_orientation.x,object_orientation.y,object_orientation.z);
 		this.ctx.listener.setPosition(listener_position.x,listener_position.y,listener_position.z);
@@ -216,16 +253,25 @@ function Audio()
 			var self = this;
 			this.sound.source.onended = function(){self.playing = false;};
 		}
-	}
+	}*/ 
 
 	this.startOver = function()
 	{
 		this.current_playing = -1;
 	}
 	this.stop = function(){
+		this.sound.source.onended = function(){};
 		if (this.playing && this.sound.source !== undefined)
 		{
-			this.sound.source.stop();
+			try
+			{
+				this.sound.source.stop();
+			}
+			catch (DOMException)
+			{
+				log("Audio error");
+			}
+			
 		}
 		this.playing = false;
 	}
@@ -244,12 +290,21 @@ function Ball(position, velocity, color)
 	{
 		return THREE.Sphere(position, RADIUS)
 	}
+	this.explosion_effect = function()
+	{
+		if (this.audio_controller !== undefined)
+		{
+			this.audio_controller.startOver();
+			this.audio_controller.current_playing++;
+			this.audio_controller.playOneFlat();
+		}
+	}
 	this.bounce_effect = function()
 	{				
 		if (this.audio_controller !== undefined)
 		{
-			this.audio_controller.startOver();		
-			this.mesh.updateMatrixWorld();
+			this.audio_controller.startOver();
+			/*this.mesh.updateMatrixWorld();
 			var object_position = new THREE.Vector3();
 			object_position.setFromMatrixPosition(this.mesh.matrixWorld);
 			var listener_position = new THREE.Vector3();
@@ -260,14 +315,14 @@ function Ball(position, velocity, color)
 			object_matrix.elements[12] = object_matrix.elements[13] = object_matrix.elements[14] = 0;
 			object_orientation.applyProjection(object_matrix);
 			object_orientation.normalize();
-			var listener_orientation = [new THREE.Vector3(0,0,1),new THREE.Vector3(0,-1,0)];
+			var listener_orientation = [new THREE.Vector3(0,0,1),new THREE.Vector3(0,1,0)];
 			var camera_matrix = camera.clone().matrix;
 			camera_matrix.elements[12] = camera_matrix.elements[13] = camera_matrix.elements[14] = 0;
 			listener_orientation[0].applyProjection(camera_matrix);
 			listener_orientation[0].normalize();
 			listener_orientation[1].applyProjection(camera_matrix);
-			listener_orientation[1].normalize();
-			this.audio_controller.playOnePositional(object_position,object_orientation,listener_position,listener_orientation);
+			listener_orientation[1].normalize();*/
+			this.audio_controller.playOneFlat();
 		}
 	}
 	this.mesh = new THREE.Mesh(
@@ -309,6 +364,7 @@ function Ball(position, velocity, color)
 					else
 					{
 						log("player 1 missed");
+						this.explosion_effect();
 					}
 				}
 			}
@@ -331,6 +387,7 @@ function Ball(position, velocity, color)
 					else
 					{
 						log("player 0 missed");
+						this.explosion_effect();
 					}
 				}
 			}
@@ -353,6 +410,7 @@ function Ball(position, velocity, color)
 					else
 					{
 						log("player 3 missed");
+						this.explosion_effect();
 					}
 				}
 			}
@@ -375,6 +433,7 @@ function Ball(position, velocity, color)
 					else
 					{
 						log("player 2 missed");
+						this.explosion_effect();
 					}
 				}
 			}
@@ -397,6 +456,7 @@ function Ball(position, velocity, color)
 					else
 					{
 						log("player 4 missed");
+						this.explosion_effect();
 					}
 				}
 			}
@@ -419,6 +479,7 @@ function Ball(position, velocity, color)
 					else
 					{
 						log("player 5 missed");
+						this.explosion_effect();
 					}
 				}
 			}

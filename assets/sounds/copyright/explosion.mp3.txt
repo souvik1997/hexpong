@@ -1,0 +1,6 @@
+assets/sounds/explosion.mp3 copyright information:
+
+Received from http://soundbible.com/1151-Grenade.html
+Author: Mike Koenig
+License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/us/)
+Description: Perfect grenade explosion in stereo sound effect. great for military or war sound effects.
