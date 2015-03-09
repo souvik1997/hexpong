@@ -9,3 +9,6 @@
 [submodule "nprogress"]
 	path = nprogress
 	url = https://github.com/rstacruz/nprogress/
+[submodule "html5-boilerplate"]
+	path = html5-boilerplate
+	url = https://github.com/h5bp/html5-boilerplate
