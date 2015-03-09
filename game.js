@@ -28,81 +28,83 @@ var sfx_miss;
 $(document).ready(function()
 {
 	download_all(function()
-		{
-			setup_scene();
-			bind_keys();
-			createSkyBox();
-			add_balls_to_scene();
-			add_players_to_scene()
-			add_bounding_cube();
-			animate();
-		});	
+	{
+		setup_scene();
+		bind_keys();
+		createSkyBox();
+		add_balls_to_scene();
+		add_players_to_scene()
+		add_bounding_cube();
+		animate();
+	});
 });
+
 function download_all(callback)
-{	
+{
 	skybox_texture = THREE.ImageUtils.loadTexture('assets/skybox.jpg');
-	
 	urls = [
+	{
+		url: "assets/sounds/Eric_Skiff_-_03_-_Chibi_Ninja.mp3",
+		responseType: "arraybuffer",
+		exec: function(data)
 		{
-			url: "assets/sounds/Eric_Skiff_-_03_-_Chibi_Ninja.mp3", 
-			responseType: "arraybuffer",
-			exec:function(data){
-				console.log("downloaded bg sound #1");
-				bg_audio.addSound(data, function()
-					{
-						bg_audio.sound.volume.gain.value = 0.2;
-						bg_audio.playAllLoopFlat();
-					});
-			}
-		},
+			log("downloaded bg sound #1");
+			bg_audio.addSound(data, function()
+			{
+				bg_audio.sound.volume.gain.value = 0.5;
+				bg_audio.playAllLoopFlat();
+			});
+		}
+	},
+	{
+		url: "assets/sounds/BoxCat_Games_-_10_-_Epic_Song.mp3",
+		responseType: "arraybuffer",
+		exec: function(data)
 		{
-			url: "assets/sounds/BoxCat_Games_-_10_-_Epic_Song.mp3", 
-			responseType: "arraybuffer",
-			exec:function(data){
-				console.log("downloaded bg sound #2");
-				bg_audio.addSound(data);
-			}
-		},
+			log("downloaded bg sound #2");
+			bg_audio.addSound(data);
+		}
+	},
+	{
+		url: "assets/sounds/beep.mp3",
+		responseType: "arraybuffer",
+		exec: function(data)
 		{
-			url: "assets/sounds/beep.mp3", 
-			responseType: "arraybuffer",
-			exec:function(data){
-				console.log("downloaded sfx sound #1");
-				sfx_bounce = data;
-				global_audio_context.decodeAudioData(data, function onSuccess(buffer){
-					for (obj in objects)
-					{
-						if (objects[obj].audio_controller === undefined)
-							objects[obj].audio_controller = new Audio();
-						objects[obj].audio_controller.buffers[0] = buffer;
-					}
-				},function onFailure()
+			log("downloaded sfx sound #1");
+			sfx_bounce = data;
+			global_audio_context.decodeAudioData(data, function onSuccess(buffer)
+			{
+				for (obj in objects)
 				{
-
-				});
-			}
-		},
+					if (objects[obj].audio_controller === undefined) //ensure audio is created only once
+						objects[obj].audio_controller = new Audio();
+					objects[obj].audio_controller.buffers[0] = buffer;
+				}
+			}, function onFailure()
+			{});
+		}
+	},
+	{
+		url: "assets/sounds/explosion.mp3",
+		responseType: "arraybuffer",
+		exec: function(data)
 		{
-			url: "assets/sounds/explosion.mp3", 
-			responseType: "arraybuffer",
-			exec:function(data){
-				console.log("downloaded sfx sound #2");
-				sfx_bounce = data;
-				global_audio_context.decodeAudioData(data, function onSuccess(buffer){
-					for (obj in objects)
-					{
-						if (objects[obj].audio_controller === undefined)
-							objects[obj].audio_controller = new Audio();
-						objects[obj].audio_controller.buffers[1] = buffer;
-					}
-				},function onFailure()
+			log("downloaded sfx sound #2");
+			sfx_bounce = data;
+			global_audio_context.decodeAudioData(data, function onSuccess(buffer)
+			{
+				for (obj in objects)
 				{
-
-				});
-			}
-		},
-	];
-	var xhr_callback = function(e){		
+					if (objects[obj].audio_controller === undefined)
+						objects[obj].audio_controller = new Audio();
+					objects[obj].audio_controller.buffers[1] = buffer;
+				}
+			}, function onFailure()
+			{});
+		}
+	}, ];
+	var xhr_callback = function(e)
+	{
 		urls[0].exec(this.response);
 		urls.shift();
 		if (urls.length == 0)
@@ -112,29 +114,32 @@ function download_all(callback)
 		else
 		{
 			var request = new XMLHttpRequest();
-			request.open("GET",urls[0].url,true);
+			request.open("GET", urls[0].url, true);
 			request.responseType = urls[0].responseType;
 			request.onload = xhr_callback;
 			request.send();
 		}
 	};
 	var request = new XMLHttpRequest();
-	request.open("GET",urls[0].url,true);
+	request.open("GET", urls[0].url, true);
 	request.responseType = urls[0].responseType;
 	request.onload = xhr_callback;
 	request.send();
 }
+
 function add_balls_to_scene()
 {
 	for (var obj in objects)
 		scene.add(objects[obj].mesh);
 }
+
 function add_players_to_scene()
 {
 	for (var player in players)
 		if (players[player].enabled)
 			scene.add(players[player].mesh);
 }
+
 function add_bounding_cube()
 {
 	bounding_cube = new THREE.BoxHelper(new THREE.Mesh(
@@ -143,6 +148,7 @@ function add_bounding_cube()
 	bounding_cube.material.color.set(0x321087);
 	scene.add(bounding_cube);
 }
+
 function get_random_color()
 {
 	var palette = [
@@ -168,6 +174,7 @@ function log()
 		for (var i = 0; i < arguments.length; i++)
 			console.log(arguments[i]);
 }
+
 function Audio()
 {
 	this.sound = {};
@@ -178,23 +185,23 @@ function Audio()
 	this.current_playing = -1;
 	this.sound.volume = this.ctx.createGain();
 	this.playing = false;
-	this.addSound = function(data,callback) //data from XMLHttpRequest
-	{
-		var self = this;
-		this.ctx.decodeAudioData(data, function onSuccess(buffer)
+	this.addSound = function(data, callback) //data from XMLHttpRequest
 		{
-			self.buffers.push(buffer);
-			callback();
-		}, function onFailure()
-		{
-		});
-	}
+			var self = this;
+			this.ctx.decodeAudioData(data, function onSuccess(buffer)
+			{
+				self.buffers.push(buffer);
+				callback();
+			}, function onFailure()
+			{});
+		}
 	this.set_up_audiobuffersourcenode = function()
-	{		
+	{
 		this.sound.source = this.ctx.createBufferSource();
 		this.sound.panner = this.ctx.createPanner();
 	}
-	this.playOneFlat = function(callback){
+	this.playOneFlat = function(callback)
+	{
 		this.current_playing++;
 		this.set_up_audiobuffersourcenode();
 		this.sound.volume.connect(this.mainVolume);
@@ -207,60 +214,69 @@ function Audio()
 			this.playing = true;
 			var self = this;
 			if (callback !== undefined)
-				this.sound.source.onended(function(){self.playing = false; callback();});
+				this.sound.source.onended(function()
+				{
+					self.playing = false;
+					callback();
+				});
 		}
 	}
-	this.playAllLoopFlat = function(){
-		this.current_playing++;
-		this.set_up_audiobuffersourcenode();
-		this.sound.volume.connect(this.mainVolume);
-		this.sound.source.connect(this.sound.volume);
-		this.stop();
-		if (this.buffers.length <= 0)
-			return false;
-		this.playing = true;
-		if (this.buffers[this.current_playing] == undefined)
+	this.playAllLoopFlat = function()
 		{
-			this.startOver();
 			this.current_playing++;
-		}
-		this.sound.source.buffer = this.buffers[this.current_playing];
-		this.sound.source.start(this.ctx.currentTime);
-		var self = this;
-		this.sound.source.onended = function(){self.playing = false; self.playAllLoopFlat();};
-	}
-	/*
-	TODO: Fix this
-
-	this.playOnePositional = function(object_position,object_orientation,listener_position, listener_orientation, callback){ //listener will be the camera, object will be the ball
-		this.current_playing++;
-		this.stop();
-		this.set_up_audiobuffersourcenode();
-		this.sound.volume.connect(this.sound.panner);
-		this.sound.panner.connect(this.mainVolume);
-		this.sound.panner.rolloffFactor = 0;
-		this.sound.panner.coneInnerAngle = 360;
-		this.sound.panner.setPosition(object_position.x,object_position.y,object_position.z);
-		//this.sound.panner.setOrientation(object_orientation.x,object_orientation.y,object_orientation.z);
-		this.ctx.listener.setPosition(listener_position.x,listener_position.y,listener_position.z);
-		//this.ctx.listener.setOrientation(listener_orientation[0].x,listener_orientation[0].y,listener_orientation[0].z,listener_orientation[1].x,listener_orientation[1].y,listener_orientation[1].z);	
-
-		if (this.buffers[this.current_playing] !== undefined)
-		{
+			this.set_up_audiobuffersourcenode();
+			this.sound.volume.connect(this.mainVolume);
+			this.sound.source.connect(this.sound.volume);
+			this.stop();
+			if (this.buffers.length <= 0)
+				return false;
 			this.playing = true;
+			if (this.buffers[this.current_playing] == undefined)
+			{
+				this.startOver();
+				this.current_playing++;
+			}
 			this.sound.source.buffer = this.buffers[this.current_playing];
 			this.sound.source.start(this.ctx.currentTime);
 			var self = this;
-			this.sound.source.onended = function(){self.playing = false;};
+			this.sound.source.onended = function()
+			{
+				self.playing = false;
+				self.playAllLoopFlat();
+			};
 		}
-	}*/ 
+		/*
+		TODO: Fix this
 
+		this.playOnePositional = function(object_position,object_orientation,listener_position, listener_orientation, callback){ //listener will be the camera, object will be the ball
+			this.current_playing++;
+			this.stop();
+			this.set_up_audiobuffersourcenode();
+			this.sound.volume.connect(this.sound.panner);
+			this.sound.panner.connect(this.mainVolume);
+			this.sound.panner.rolloffFactor = 0;
+			this.sound.panner.coneInnerAngle = 360;
+			this.sound.panner.setPosition(object_position.x,object_position.y,object_position.z);
+			//this.sound.panner.setOrientation(object_orientation.x,object_orientation.y,object_orientation.z);
+			this.ctx.listener.setPosition(listener_position.x,listener_position.y,listener_position.z);
+			//this.ctx.listener.setOrientation(listener_orientation[0].x,listener_orientation[0].y,listener_orientation[0].z,listener_orientation[1].x,listener_orientation[1].y,listener_orientation[1].z);
+
+			if (this.buffers[this.current_playing] !== undefined)
+			{
+				this.playing = true;
+				this.sound.source.buffer = this.buffers[this.current_playing];
+				this.sound.source.start(this.ctx.currentTime);
+				var self = this;
+				this.sound.source.onended = function(){self.playing = false;};
+			}
+		}*/
 	this.startOver = function()
 	{
 		this.current_playing = -1;
 	}
-	this.stop = function(){
-		this.sound.source.onended = function(){};
+	this.stop = function()
+	{
+		this.sound.source.onended = function() {};
 		if (this.playing && this.sound.source !== undefined)
 		{
 			try
@@ -271,11 +287,11 @@ function Audio()
 			{
 				log("Audio error");
 			}
-			
 		}
 		this.playing = false;
 	}
 }
+
 function Ball(position, velocity, color)
 {
 	var RADIUS = 100;
@@ -300,7 +316,7 @@ function Ball(position, velocity, color)
 		}
 	}
 	this.bounce_effect = function()
-	{				
+	{
 		if (this.audio_controller !== undefined)
 		{
 			this.audio_controller.startOver();
@@ -344,7 +360,7 @@ function Ball(position, velocity, color)
 		}
 		else
 		{
-			this.position.add(velocity);			
+			this.position.add(velocity);
 			if (this.position.x >= MAX_BOUND)
 			{
 				this.position.x = MAX_BOUND;
@@ -830,17 +846,17 @@ function Player(num, color, enabled, ai)
 }
 
 function zoom_to(player) // player is a number
-{
-	target_angles = [
-		[0, Math.PI / 2],
-		[0, Math.PI * 3 / 2],
-		[-Math.PI / 2, Math.PI],
-		[Math.PI / 2, Math.PI],
-		[0, Math.PI],
-		[0, 0]
-	]
-	rotation_intermediate = target_angles[player];
-}
+	{
+		target_angles = [
+			[0, Math.PI / 2],
+			[0, Math.PI * 3 / 2],
+			[-Math.PI / 2, Math.PI],
+			[Math.PI / 2, Math.PI],
+			[0, Math.PI],
+			[0, 0]
+		]
+		rotation_intermediate = target_angles[player];
+	}
 
 function bind_keys()
 {
@@ -972,7 +988,10 @@ function setup_scene()
 		center.position.set(camera_positions[pos][0].x, camera_positions[pos][0].y, camera_positions[pos][0].z);
 		scene.add(center);
 	}
-	renderer = new THREE.WebGLRenderer({canvas:document.getElementById("c")});
+	renderer = new THREE.WebGLRenderer(
+	{
+		canvas: document.getElementById("c")
+	});
 	renderer.autoClear = true;
 	renderer.setSize($("#c").width(), $("#c").height());
 	controls = new THREE.OrbitControls(camera, renderer.domElement);
