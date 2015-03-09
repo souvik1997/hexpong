@@ -1,0 +1,7 @@
+assets/sounds/BoxCat_Games_-_10_-_Epic_Song.mp3 copyright information:
+
+Received from http://freemusicarchive.org/music/boxcat_games/nameless_the_hackers_rpg_soundtrack/boxcat_games_-_nameless-_the_hackers_rpg_soundtrack_-_10_epic_song
+
+Author: BoxCat Games
+License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/us/)
+Description: 29 funky chiptunes from the soundtrack of "Nameless: The Hackers RPG", a new iOS RPG by BoxCat Games. 
