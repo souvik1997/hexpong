@@ -30,10 +30,10 @@ var key_controls = {
 var global_audio_context = new AudioContext();
 var bg_audio = new Audio();
 var skybox_texture;
-var sfx_bounce;
 var sfx_miss;
 $(document).ready(function()
 {
+	NProgress.start();
 	download_all(function()
 	{
 		setup_scene();
@@ -56,6 +56,7 @@ function download_all(callback)
 		exec: function(data)
 		{
 			log("downloaded bg sound #1");
+			NProgress.inc();
 			bg_audio.addSound(data, function()
 			{
 				bg_audio.sound.volume.gain.value = 0.5;
@@ -69,6 +70,7 @@ function download_all(callback)
 		exec: function(data)
 		{
 			log("downloaded bg sound #2");
+			NProgress.inc();
 			bg_audio.addSound(data);
 		}
 	},
@@ -78,7 +80,7 @@ function download_all(callback)
 		exec: function(data)
 		{
 			log("downloaded sfx sound #1");
-			sfx_bounce = data;
+			NProgress.inc();
 			global_audio_context.decodeAudioData(data, function onSuccess(buffer)
 			{
 				for (obj in objects)
@@ -97,7 +99,7 @@ function download_all(callback)
 		exec: function(data)
 		{
 			log("downloaded sfx sound #2");
-			sfx_bounce = data;
+			NProgress.done();
 			global_audio_context.decodeAudioData(data, function onSuccess(buffer)
 			{
 				for (obj in objects)
@@ -962,7 +964,8 @@ function Audio()
 		this.ctx.decodeAudioData(data, function onSuccess(buffer)
 		{
 			self.buffers.push(buffer);
-			callback();
+			if (callback !== undefined)
+				callback();
 		}, function onFailure()
 		{});
 	}
