@@ -942,96 +942,100 @@ function Player(args)
 		if (this.ai)
 		{
 			var instructions = [];
+			var target_position = ball.position.clone();
+			target_position.x += Math.round(randNorm()*SIZE*4);
+			target_position.y += Math.round(randNorm()*SIZE*4);
+			target_position.z += Math.round(randNorm()*SIZE*4);
 			switch (this.num)
 			{
 				case 0:
-					instructions[0] = -ball.position.x;
-					if (ball.position.z > this.position.x)
+					instructions[0] = -target_position.x;
+					if (target_position.z > this.position.x)
 						instructions[1] = this.move_right_ai();
-					else if (ball.position.z < this.position.x)
+					else if (target_position.z < this.position.x)
 						instructions[1] = this.move_left_ai();
-					else if (ball.position.z == this.position.x)
+					else if (target_position.z == this.position.x)
 						instructions[1] = this.stop_x_ai();
-					if (ball.position.y > this.position.y)
+					if (target_position.y > this.position.y)
 						instructions[2] = this.move_up_ai();
-					else if (ball.position.y < this.position.y)
+					else if (target_position.y < this.position.y)
 						instructions[2] = this.move_down_ai();
-					else if (ball.position.y == this.position.y)
+					else if (target_position.y == this.position.y)
 						instructions[2] = this.stop_y_ai();
 					break;
 				case 1:
-					instructions[0] = ball.position.x;
-					if (ball.position.z < -this.position.x)
+					instructions[0] = target_position.x;
+					if (target_position.z < -this.position.x)
 						instructions[1] = this.move_right_ai();
-					else if (ball.position.z > -this.position.x)
+					else if (target_position.z > -this.position.x)
 						instructions[1] = this.move_left_ai();
-					else if (ball.position.z == -this.position.x)
+					else if (target_position.z == -this.position.x)
 						instructions[1] = this.stop_x_ai();
-					if (ball.position.y > this.position.y)
+					if (target_position.y > this.position.y)
 						instructions[2] = this.move_up_ai();
-					else if (ball.position.y < this.position.y)
+					else if (target_position.y < this.position.y)
 						instructions[2] = this.move_down_ai();
-					else if (ball.position.y == this.position.y)
+					else if (target_position.y == this.position.y)
 						instructions[2] = this.stop_y_ai();
 					break;
 				case 2:
-					instructions[0] = -ball.position.y;
-					if (ball.position.z > this.position.y)
+					instructions[0] = -target_position.y;
+					if (target_position.z > this.position.y)
 						instructions[2] = this.move_up_ai();
-					else if (ball.position.z < this.position.y)
+					else if (target_position.z < this.position.y)
 						instructions[2] = this.move_down_ai();
-					else if (ball.position.z == this.position.y)
+					else if (target_position.z == this.position.y)
 						instructions[2] = this.stop_y_ai();
-					if (ball.position.x > this.position.x)
+					if (target_position.x > this.position.x)
 						instructions[1] = this.move_right_ai();
-					else if (ball.position.x < this.position.x)
+					else if (target_position.x < this.position.x)
 						instructions[1] = this.move_left_ai();
-					else if (ball.position.x == this.position.x)
+					else if (target_position.x == this.position.x)
 						instructions[1] = this.stop_x_ai();
 					break;
 				case 3:
-					instructions[0] = ball.position.y;
-					if (ball.position.z < -this.position.y)
+					instructions[0] = target_position.y;
+					if (target_position.z < -this.position.y)
 						instructions[2] = this.move_up_ai();
-					else if (ball.position.z > -this.position.y)
+					else if (target_position.z > -this.position.y)
 						instructions[2] = this.move_down_ai();
-					else if (ball.position.z == -this.position.y)
+					else if (target_position.z == -this.position.y)
 						instructions[2] = this.stop_y_ai();
-					if (ball.position.x > this.position.x)
+					if (target_position.x > this.position.x)
 						instructions[1] = this.move_right_ai();
-					else if (ball.position.x < this.position.x)
+					else if (target_position.x < this.position.x)
 						instructions[1] = this.move_left_ai();
-					else if (ball.position.x == this.position.x)
+					else if (target_position.x == this.position.x)
 						instructions[1] = this.stop_x_ai();
 					break;
 				case 4:
-					instructions[0] = ball.position.z;
-					if (ball.position.y > this.position.y)
+					instructions[0] = target_position.z;
+					if (target_position.y > this.position.y)
 						instructions[2] = this.move_up_ai();
-					else if (ball.position.y < this.position.y)
+					else if (target_position.y < this.position.y)
 						instructions[2] = this.move_down_ai();
-					else if (ball.position.y == this.position.y)
+					else if (target_position.y == this.position.y)
 						instructions[2] = this.stop_y_ai();
-					if (ball.position.x > this.position.x)
+					if (target_position.x > this.position.x)
 						instructions[1] = this.move_right_ai();
-					else if (ball.position.x < this.position.x)
+					else if (target_position.x < this.position.x)
 						instructions[1] = this.move_left_ai();
-					else if (ball.position.x == this.position.x)
+					else if (target_position.x == this.position.x)
 						instructions[1] = this.stop_x_ai();
 					break;
 				case 5:
-					instructions[0] = -ball.position.z;
-					if (ball.position.y > this.position.y)
+					instructions[0] = -target_position.z;
+					if (target_position.y > this.position.y)
 						instructions[2] = this.move_up_ai();
-					else if (ball.position.y < this.position.y)
+					else if (target_position.y < this.position.y)
 						instructions[2] = this.move_down_ai();
-					else if (ball.position.y == this.position.y)
+					else if (target_position.y == this.position.y)
 						instructions[2] = this.stop_y_ai();
-					if (ball.position.x < -this.position.x)
+					if (target_position.x < -this.position.x)
 						instructions[1] = this.move_right_ai();
-					else if (ball.position.x > -this.position.x)
+					else if (target_position.x > -this.position.x)
 						instructions[1] = this.move_left_ai();
-					else if (ball.position.x == -this.position.x)
+					else if (target_position.x == -this.position.x)
 						instructions[1] = this.stop_x_ai();
 					break;
 			}
@@ -1223,4 +1227,9 @@ function get_palette_color(num)
 		0xF8345A,
 	]
 	return palette[num];
+}
+
+function randNorm()
+{
+	return ((Math.random() + Math.random() + Math.random() + Math.random() + Math.random() + Math.random()) - 3) / 3;
 }
