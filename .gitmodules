@@ -15,3 +15,6 @@
 [submodule "bootstrap"]
 	path = bootstrap
 	url = https://github.com/twbs/bootstrap
+[submodule "gyro.js"]
+	path = gyro.js
+	url = https://github.com/tomgco/gyro.js

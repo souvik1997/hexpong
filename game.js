@@ -1,4 +1,4 @@
-/* global THREE, $, NProgress, AudioContext */
+/* global THREE, $, NProgress, AudioContext, gyro */
 
 var scene, camera, renderer;
 var SKYBOX_MAX_RADIUS;
@@ -16,6 +16,7 @@ var bg_audio;
 var skybox_texture;
 var demo;
 var controls;
+var gyro_initial_orientation;
 $(document)
 	.ready(function() {
 		initialize_variables();
@@ -41,7 +42,14 @@ $(document)
 					renderer.setSize($("#c")
 						.width(), $("#c")
 						.height());
-					console.log("resize");
+					var temp = gyro.getOrientation();
+					if (temp !== undefined)
+					{
+						gyro_initial_orientation = {}
+						gyro_initial_orientation.gamma = temp.gamma + 1000;
+						gyro_initial_orientation.beta = temp.beta + 1000;
+					}
+					log("resize");
 				});
 			animate();
 		});
@@ -342,6 +350,13 @@ function new_single_player_game() {
 	for (var i = 0; i < players.length; i++) players[i].reset = true;
 	for (var j = 0; j < objects.length; j++) objects[j].reset = true;
 	controls.autoRotate = false;
+	var temp = gyro.getOrientation();
+	if (temp !== undefined)
+	{
+		gyro_initial_orientation = {}
+		gyro_initial_orientation.gamma = temp.gamma + 1000;
+		gyro_initial_orientation.beta = temp.beta + 1000;
+	}
 	zoom_to(0);
 }
 
@@ -356,6 +371,120 @@ function animate() {
 				players[player].ai_intent(objects[object]));
 			players[player].ai_exec(instructions);
 			players[player].update();
+		}
+		/*	Gyroscope controls
+			Based on portrait+upright mode
+			gamma: roll
+			beta: pitch
+		*/
+		var o = gyro.getOrientation();
+		var GYRO_SIGNIFICANCE_GAMMA = 0.1;
+		var GYRO_SIGNIFICANCE_BETA = 0.1;
+		var GYRO_GAMMA_FACTOR = 3;
+		var GYRO_BETA_FACTOR = 2;
+		if (o !== undefined && gyro_initial_orientation !== undefined && players[current_focused_player].userControlled)
+		{
+			current_gamma = o.gamma + 1000;
+			current_beta = o.beta + 1000;
+			switch (window.orientation)
+			{
+				case 0:
+					log('portrait mode');
+					log(o);
+					if (current_gamma - gyro_initial_orientation.gamma > GYRO_SIGNIFICANCE_GAMMA)
+					{
+						players[current_focused_player].velocity.x = current_gamma - gyro_initial_orientation.gamma;
+						players[current_focused_player].velocity.x *= GYRO_GAMMA_FACTOR;
+					}
+					else if (current_gamma - gyro_initial_orientation.gamma < -GYRO_SIGNIFICANCE_GAMMA)
+					{
+						players[current_focused_player].velocity.x = current_gamma - gyro_initial_orientation.gamma;
+						players[current_focused_player].velocity.x *= GYRO_GAMMA_FACTOR;
+					}
+					else
+					{
+						players[current_focused_player].stop_x();
+					}
+					if (current_beta - gyro_initial_orientation.beta > GYRO_SIGNIFICANCE_BETA)
+					{
+						players[current_focused_player].velocity.y = -(current_beta - gyro_initial_orientation.beta);
+						players[current_focused_player].velocity.y *= GYRO_BETA_FACTOR;
+					}
+					else if (current_beta - gyro_initial_orientation.beta < -GYRO_SIGNIFICANCE_BETA)
+					{
+						players[current_focused_player].velocity.y = -(current_beta - gyro_initial_orientation.beta);
+						players[current_focused_player].velocity.y *= GYRO_BETA_FACTOR;
+					}
+					else
+					{
+						players[current_focused_player].stop_y();
+					}
+				break;
+
+				case -90:
+					log('landscape mode screen turned to the right');
+					if (current_gamma - gyro_initial_orientation.gamma > GYRO_SIGNIFICANCE_GAMMA)
+					{
+						players[current_focused_player].velocity.y = -(current_gamma - gyro_initial_orientation.gamma);
+						players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
+					}
+					else if (current_gamma - gyro_initial_orientation.gamma < -GYRO_SIGNIFICANCE_GAMMA)
+					{
+						players[current_focused_player].velocity.y = -(current_gamma - gyro_initial_orientation.gamma);
+						players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
+					}
+					else
+					{
+						players[current_focused_player].stop_y();
+					}
+					if (current_beta - gyro_initial_orientation.beta > GYRO_SIGNIFICANCE_BETA)
+					{
+						players[current_focused_player].velocity.x = -(current_beta - gyro_initial_orientation.beta);
+						players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
+					}
+					else if (current_beta - gyro_initial_orientation.beta < -GYRO_SIGNIFICANCE_BETA)
+					{
+						players[current_focused_player].velocity.x = -(current_beta - gyro_initial_orientation.beta);
+						players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
+					}
+					else
+					{
+						players[current_focused_player].stop_x();
+					}
+				break;
+
+				case 90:
+					log('landscape mode screen turned to the left');
+					if (current_gamma - gyro_initial_orientation.gamma > GYRO_SIGNIFICANCE_GAMMA)
+					{
+						players[current_focused_player].velocity.y = current_gamma - gyro_initial_orientation.gamma;
+						players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
+					}
+					else if (current_gamma - gyro_initial_orientation.gamma < -GYRO_SIGNIFICANCE_GAMMA)
+					{
+						players[current_focused_player].velocity.y = current_gamma - gyro_initial_orientation.gamma;
+						players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
+					}
+					else
+					{
+						players[current_focused_player].stop_y();
+					}
+					if (current_beta - gyro_initial_orientation.beta > GYRO_SIGNIFICANCE_BETA)
+					{
+						players[current_focused_player].velocity.x = current_beta - gyro_initial_orientation.beta;
+						players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
+					}
+					else if (current_beta - gyro_initial_orientation.beta < -GYRO_SIGNIFICANCE_BETA)
+					{
+						players[current_focused_player].velocity.x = current_beta - gyro_initial_orientation.beta;
+						players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
+					}
+					else
+					{
+						players[current_focused_player].stop_x();
+					}
+				break;
+			}
 		}
 		if (key_controls.left && players[current_focused_player].userControlled)
 			players[current_focused_player].accelerate(new THREE.Vector2(-
@@ -1094,4 +1223,13 @@ function initialize_variables() {
 	global_audio_context = new AudioContext();
 	bg_audio = new Audio();
 	demo = false;
+	$(window).on("orientationchange",function(e){
+		var temp = gyro.getOrientation();
+		if (temp !== undefined)
+		{
+			gyro_initial_orientation = {}
+			gyro_initial_orientation.gamma = temp.gamma + 1000;
+			gyro_initial_orientation.beta = temp.beta + 1000;
+		}
+	});
 }
