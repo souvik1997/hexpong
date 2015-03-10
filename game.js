@@ -874,104 +874,104 @@ function Player(args) {
 }
 
 function Audio() {
-		this.sound = {};
-		this.ctx = global_audio_context;
-		this.mainVolume = this.ctx.createGain();
-		this.mainVolume.connect(this.ctx.destination);
-		this.buffers = [];
-		this.current_playing = -1;
-		this.sound.volume = this.ctx.createGain();
-		this.playing = false;
-		this.addSound = function(data, callback) //data from XMLHttpRequest
-			{
-				var self = this;
-				this.ctx.decodeAudioData(data, function onSuccess(buffer) {
-					self.buffers.push(buffer);
-					if (callback !== undefined) callback();
-				}, function onFailure() {});
-			};
-		this.set_up_audiobuffersourcenode = function() {
-			this.sound.source = this.ctx.createBufferSource();
-			this.sound.panner = this.ctx.createPanner();
+	this.sound = {};
+	this.ctx = global_audio_context;
+	this.mainVolume = this.ctx.createGain();
+	this.mainVolume.connect(this.ctx.destination);
+	this.buffers = [];
+	this.current_playing = -1;
+	this.sound.volume = this.ctx.createGain();
+	this.playing = false;
+	this.addSound = function(data, callback) //data from XMLHttpRequest
+		{
+			var self = this;
+			this.ctx.decodeAudioData(data, function onSuccess(buffer) {
+				self.buffers.push(buffer);
+				if (callback !== undefined) callback();
+			}, function onFailure() {});
 		};
-		this.playOneFlat = function(callback) {
-			this.current_playing++;
-			this.set_up_audiobuffersourcenode();
-			this.sound.volume.connect(this.mainVolume);
-			this.sound.source.connect(this.sound.volume);
-			this.stop();
-			if (this.buffers[this.current_playing] !== undefined) {
-				this.sound.source.buffer = this.buffers[this.current_playing];
-				this.sound.source.start(this.ctx.currentTime);
-				this.playing = true;
-				var self = this;
-				if (callback !== undefined) this.sound.source.onended(function() {
-					self.playing = false;
-					callback();
-				});
-			}
-		};
-		this.playAllLoopFlat = function() {
-			this.current_playing++;
-			this.set_up_audiobuffersourcenode();
-			this.sound.volume.connect(this.mainVolume);
-			this.sound.source.connect(this.sound.volume);
-			this.stop();
-			if (this.buffers.length <= 0) return false;
+	this.set_up_audiobuffersourcenode = function() {
+		this.sound.source = this.ctx.createBufferSource();
+		this.sound.panner = this.ctx.createPanner();
+	};
+	this.playOneFlat = function(callback) {
+		this.current_playing++;
+		this.set_up_audiobuffersourcenode();
+		this.sound.volume.connect(this.mainVolume);
+		this.sound.source.connect(this.sound.volume);
+		this.stop();
+		if (this.buffers[this.current_playing] !== undefined) {
+			this.sound.source.buffer = this.buffers[this.current_playing];
+			this.sound.source.start(this.ctx.currentTime);
 			this.playing = true;
-			if (this.buffers[this.current_playing] === undefined) {
-				this.startOver();
-				this.current_playing++;
-			}
+			var self = this;
+			if (callback !== undefined) this.sound.source.onended(function() {
+				self.playing = false;
+				callback();
+			});
+		}
+	};
+	this.playAllLoopFlat = function() {
+		this.current_playing++;
+		this.set_up_audiobuffersourcenode();
+		this.sound.volume.connect(this.mainVolume);
+		this.sound.source.connect(this.sound.volume);
+		this.stop();
+		if (this.buffers.length <= 0) return false;
+		this.playing = true;
+		if (this.buffers[this.current_playing] === undefined) {
+			this.startOver();
+			this.current_playing++;
+		}
+		this.sound.source.buffer = this.buffers[this.current_playing];
+		this.sound.source.start(this.ctx.currentTime);
+		var self = this;
+		this.sound.source.onended = function() {
+			self.playing = false;
+			self.playAllLoopFlat();
+		};
+	};
+	/*
+	TODO: Fix this
+
+	this.playOnePositional = function(object_position,object_orientation,listener_position, listener_orientation, callback){ //listener will be the camera, object will be the ball
+		this.current_playing++;
+		this.stop();
+		this.set_up_audiobuffersourcenode();
+		this.sound.volume.connect(this.sound.panner);
+		this.sound.panner.connect(this.mainVolume);
+		this.sound.panner.rolloffFactor = 0;
+		this.sound.panner.coneInnerAngle = 360;
+		this.sound.panner.setPosition(object_position.x,object_position.y,object_position.z);
+		//this.sound.panner.setOrientation(object_orientation.x,object_orientation.y,object_orientation.z);
+		this.ctx.listener.setPosition(listener_position.x,listener_position.y,listener_position.z);
+		//this.ctx.listener.setOrientation(listener_orientation[0].x,listener_orientation[0].y,listener_orientation[0].z,listener_orientation[1].x,listener_orientation[1].y,listener_orientation[1].z);
+
+		if (this.buffers[this.current_playing] !== undefined)
+		{
+			this.playing = true;
 			this.sound.source.buffer = this.buffers[this.current_playing];
 			this.sound.source.start(this.ctx.currentTime);
 			var self = this;
-			this.sound.source.onended = function() {
-				self.playing = false;
-				self.playAllLoopFlat();
-			};
-		};
-		/*
-		TODO: Fix this
-
-		this.playOnePositional = function(object_position,object_orientation,listener_position, listener_orientation, callback){ //listener will be the camera, object will be the ball
-			this.current_playing++;
-			this.stop();
-			this.set_up_audiobuffersourcenode();
-			this.sound.volume.connect(this.sound.panner);
-			this.sound.panner.connect(this.mainVolume);
-			this.sound.panner.rolloffFactor = 0;
-			this.sound.panner.coneInnerAngle = 360;
-			this.sound.panner.setPosition(object_position.x,object_position.y,object_position.z);
-			//this.sound.panner.setOrientation(object_orientation.x,object_orientation.y,object_orientation.z);
-			this.ctx.listener.setPosition(listener_position.x,listener_position.y,listener_position.z);
-			//this.ctx.listener.setOrientation(listener_orientation[0].x,listener_orientation[0].y,listener_orientation[0].z,listener_orientation[1].x,listener_orientation[1].y,listener_orientation[1].z);
-
-			if (this.buffers[this.current_playing] !== undefined)
-			{
-				this.playing = true;
-				this.sound.source.buffer = this.buffers[this.current_playing];
-				this.sound.source.start(this.ctx.currentTime);
-				var self = this;
-				this.sound.source.onended = function(){self.playing = false;};
+			this.sound.source.onended = function(){self.playing = false;};
+		}
+	}*/
+	this.startOver = function() {
+		this.current_playing = -1;
+	};
+	this.stop = function() {
+		this.sound.source.onended = function() {};
+		if (this.playing && this.sound.source !== undefined) {
+			try {
+				this.sound.source.stop();
+			} catch (DOMException) {
+				log("Audio error");
 			}
-		}*/
-		this.startOver = function() {
-			this.current_playing = -1;
-		};
-		this.stop = function() {
-			this.sound.source.onended = function() {};
-			if (this.playing && this.sound.source !== undefined) {
-				try {
-					this.sound.source.stop();
-				} catch (DOMException) {
-					log("Audio error");
-				}
-			}
-			this.playing = false;
-		};
-	}
-	// Helper methods
+		}
+		this.playing = false;
+	};
+}
+// Helper methods
 
 function log() {
 	if (PRINT_LOGS)
