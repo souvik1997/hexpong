@@ -294,7 +294,7 @@ function createSkyBox() {
 	});
 	var skyBox = new THREE.Mesh(geometry, material);
 	skyBox.scale.set(-1, 1, 1);
-	skyBox.eulerOrder = 'XZY';
+	skyBox.rotation.order = 'XZY';
 	skyBox.renderDepth = 1000.0;
 	scene.add(skyBox);
 }
