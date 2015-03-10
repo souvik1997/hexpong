@@ -61,7 +61,7 @@ function download_all(callback) {
 					bg_audio.playAllLoopFlat();
 				});
 			}
-	},
+		},
 		{
 			url: "assets/sounds/BoxCat_Games_-_10_-_Epic_Song.mp3",
 			responseType: "arraybuffer",
@@ -70,7 +70,7 @@ function download_all(callback) {
 				NProgress.inc();
 				bg_audio.addSound(data);
 			}
-	},
+		},
 		{
 			url: "assets/sounds/Rolemusic_-_01_-_Bacterial_Love.mp3",
 			responseType: "arraybuffer",
@@ -79,7 +79,7 @@ function download_all(callback) {
 				NProgress.inc();
 				bg_audio.addSound(data);
 			}
-	},
+		},
 		{
 			url: "assets/sounds/beep.mp3",
 			responseType: "arraybuffer",
@@ -94,7 +94,7 @@ function download_all(callback) {
 					}
 				}, function onFailure() {});
 			}
-	},
+		},
 		{
 			url: "assets/sounds/explosion.mp3",
 			responseType: "arraybuffer",
@@ -109,7 +109,8 @@ function download_all(callback) {
 					}
 				}, function onFailure() {});
 			}
-	}, ];
+		},
+	];
 	var xhr_callback = function() {
 		urls[0].exec(this.response);
 		urls.shift();
@@ -131,7 +132,8 @@ function download_all(callback) {
 }
 
 function fill_score_boxes() {
-	for (var i = 0; i < players.length; i++) {
+	for (var i = 0; i < players.length; i++)
+	{
 		$("#player" + i + "-score-box")
 			.css("background-color", "#" + players[i].color.toString(16));
 	}
