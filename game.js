@@ -1172,7 +1172,9 @@ function initialize_variables() {
 	ROTATION_STEP = 0.05;
 	objects = [
 		new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, -6, 4), 0xffffff),
-		new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(5, 15, 10), 0xffffff)
+		new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(5, 15, 10), 0xffffff),
+		new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(15, -5, -3), 0xffffff),
+		new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 4, 3), 0xffffff)
 	];
 	players = [
 		new Player({
