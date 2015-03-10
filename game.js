@@ -12,12 +12,12 @@ var objects = [
 	new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-10, -3, 1), 0xffffff),
 ];
 var players = [
-	new Player(0, get_random_color(), true, true),
-	new Player(1, get_random_color(), true, true),
-	new Player(2, get_random_color(), true, true),
-	new Player(3, get_random_color(), true, true),
-	new Player(4, get_random_color(), true, true),
-	new Player(5, get_random_color(), true, true)
+	new Player(0, get_palette_color(0), true, true),
+	new Player(1, get_palette_color(1), true, true),
+	new Player(2, get_palette_color(2), true, true),
+	new Player(3, get_palette_color(3), true, true),
+	new Player(4, get_palette_color(4), true, true),
+	new Player(5, get_palette_color(5), true, true)
 ];
 var current_focused_player = 0;
 var PLAYER_ACCEL_CONSTANT = 8;
@@ -31,6 +31,8 @@ var global_audio_context = new AudioContext();
 var bg_audio = new Audio();
 var skybox_texture;
 var sfx_miss;
+var demo = false;
+var controls;
 $(document).ready(function()
 {
 	NProgress.start();
@@ -43,6 +45,7 @@ $(document).ready(function()
 		add_balls_to_scene();
 		add_players_to_scene()
 		add_bounding_cube();
+		start_demo();
 		animate();
 	});
 });
@@ -340,6 +343,12 @@ function add_bounding_cube()
 		new THREE.LineBasicMaterial()));
 	bounding_cube.material.color.set(0x321087);
 	scene.add(bounding_cube);
+}
+
+function start_demo()
+{
+	demo = true;
+	controls.autoRotate = true;
 }
 
 function zoom_to(player) // player is a number
@@ -650,7 +659,7 @@ function Player(num, color, enabled, ai)
 	this.color = color;
 	this.position = new THREE.Vector2(0, 0);
 	this.velocity = new THREE.Vector2(0, 0);
-	this.score = 0;	
+	this.score = 0;
 	this.num = num;
 	this.scoreInc = function()
 	{
@@ -1156,21 +1165,21 @@ function checkCollisions(mesh, collidableMeshList) // http://stackoverflow.com/q
 	return false;
 }
 
-function get_random_color()
+function get_palette_color(num)
 {
 	var palette = [
 		0x95FE03,
 		0x3BAEE0,
-		0x9C5EDB,
 		0xE85EC3,
-		0xF8345A,
-		0xE2704B,
-		0xFCB227,
-		0xCFFF37,
 		0x37FF81,
+		0xE2704B,
 		0x4A00B4,
+		0xFCB227,
+		0x9C5EDB,
+		0x1CC095,
 		0xB4003C,
-		0x1CC095
+		0xCFFF37,
+		0xF8345A,
 	]
-	return palette[Math.round(Math.random() * palette.length)];
+	return palette[num];
 }
