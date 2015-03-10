@@ -51,9 +51,29 @@
 			{
 				z-index: 999999;
 			}
+			.scores
+			{
+				position: absolute;
+				z-index:10;
+				left:5%;
+				top:10%;
+			}
+			.scores-text
+			{
+				min-width: 100%;
+			}
 			.modal-header, .modal-content, .black-text-modal, .black-text-modal:hover, .black-text-modal:focus {
 				color: #333;
 				text-shadow: none;
+			}
+			.color-box
+			{   
+				float: left;
+				width: 10px;
+				height: 10px;
+				margin: 5px;
+				margin-right: 1px;
+				border-width: 0px;			
 			}
 		</style>
 		<script src="jquery/dist/jquery.min.js"></script>
@@ -132,7 +152,34 @@
 							</ul>
 							</nav>
 						</div>
-					</div>
+					</div>					
+					<div class="scores">
+						<h3>Scores</h3>
+						<div class="scores-text">
+							<div class="color-box" style="background-color:#ffffff" id="player0-score-box"></div>
+							<div id="player0-score">0</div>
+						</div>
+						<div class="scores-text">
+							<div class="color-box" style="background-color:#ffffff" id="player1-score-box"></div>
+							<div id="player1-score">0</div>
+						</div>
+						<div class="scores-text">
+							<div class="color-box" style="background-color:#ffffff" id="player2-score-box"></div>
+							<div id="player2-score">0</div>
+						</div>
+						<div class="scores-text">
+							<div class="color-box" style="background-color:#ffffff" id="player3-score-box"></div>
+							<div id="player3-score">0</div>
+						</div>
+						<div class="scores-text">
+							<div class="color-box" style="background-color:#ffffff" id="player4-score-box"></div>
+							<div id="player4-score">0</div>
+						</div>
+						<div class="scores-text">
+							<div class="color-box" style="background-color:#ffffff" id="player5-score-box"></div>
+							<div id="player5-score">0</div>
+						</div>
+					</div>	
 					<canvas id="c"></canvas>
 					<div class="mastfoot">
 						<div class="inner">

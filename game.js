@@ -36,6 +36,7 @@ $(document).ready(function()
 	NProgress.start();
 	download_all(function()
 	{
+		fill_score_boxes();
 		setup_scene();
 		bind_keys();
 		createSkyBox();
@@ -144,6 +145,14 @@ function download_all(callback)
 	request.responseType = urls[0].responseType;
 	request.onload = xhr_callback;
 	request.send();
+}
+
+function fill_score_boxes()
+{
+	for (var i = 0; i < players.length; i++)
+	{
+		$("#player"+i+"-score-box").css("background-color","#"+players[i].color.toString(16));
+	}
 }
 
 function setup_scene()
@@ -489,11 +498,13 @@ function Ball(position, velocity, color)
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
 						this.bounce_effect();
+						players[1].scoreInc();
 					}
 					else
 					{
 						log("player 1 missed");
 						this.explosion_effect();
+						players[1].scoreDec();
 					}
 				}
 			}
@@ -512,11 +523,13 @@ function Ball(position, velocity, color)
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
 						this.bounce_effect();
+						players[0].scoreInc();
 					}
 					else
 					{
 						log("player 0 missed");
 						this.explosion_effect();
+						players[0].scoreDec();
 					}
 				}
 			}
@@ -535,11 +548,13 @@ function Ball(position, velocity, color)
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
 						this.bounce_effect();
+						players[3].scoreInc();
 					}
 					else
 					{
 						log("player 3 missed");
 						this.explosion_effect();
+						players[3].scoreDec();
 					}
 				}
 			}
@@ -558,11 +573,13 @@ function Ball(position, velocity, color)
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
 						this.bounce_effect();
+						players[2].scoreInc();
 					}
 					else
 					{
 						log("player 2 missed");
 						this.explosion_effect();
+						players[2].scoreDec();
 					}
 				}
 			}
@@ -581,11 +598,13 @@ function Ball(position, velocity, color)
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
 						this.bounce_effect();
+						players[4].scoreInc();
 					}
 					else
 					{
 						log("player 4 missed");
 						this.explosion_effect();
+						players[4].scoreDec();
 					}
 				}
 			}
@@ -604,11 +623,13 @@ function Ball(position, velocity, color)
 						this.velocity.y *= BOUNCINESS;
 						this.velocity.z *= BOUNCINESS;
 						this.bounce_effect();
+						players[5].scoreInc();
 					}
 					else
 					{
 						log("player 5 missed");
 						this.explosion_effect();
+						players[5].scoreDec();
 					}
 				}
 			}
@@ -629,6 +650,18 @@ function Player(num, color, enabled, ai)
 	this.color = color;
 	this.position = new THREE.Vector2(0, 0);
 	this.velocity = new THREE.Vector2(0, 0);
+	this.score = 0;	
+	this.num = num;
+	this.scoreInc = function()
+	{
+		this.score++;
+		$("#player"+this.num+"-score").text(this.score);
+	}
+	this.scoreDec = function()
+	{
+		this.score--;
+		$("#player"+this.num+"-score").text(this.score);
+	}
 	if (enabled === undefined)
 	{
 		this.enabled = true;
@@ -645,7 +678,6 @@ function Player(num, color, enabled, ai)
 	{
 		this.ai = ai;
 	}
-	this.num = num;
 	this.mesh = new THREE.Mesh(
 		new THREE.BoxGeometry(SIZE, SIZE, SIZE / 8),
 		new THREE.MeshBasicMaterial(
