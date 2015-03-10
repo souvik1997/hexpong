@@ -12,3 +12,6 @@
 [submodule "html5-boilerplate"]
 	path = html5-boilerplate
 	url = https://github.com/h5bp/html5-boilerplate
+[submodule "bootstrap"]
+	path = bootstrap
+	url = https://github.com/twbs/bootstrap
