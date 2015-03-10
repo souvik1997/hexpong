@@ -152,7 +152,7 @@ function setup_scene() {
 	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight,
 		1, SKYBOX_MAX_RADIUS * 2);
 	camera.position.z = 1000;
-	var camera_positions = [
+	var light_positions = [
 		[new THREE.Vector3(-MAX_BOUND, 0, 0), players[0].color],
 		[new THREE.Vector3(-MAX_BOUND, MAX_BOUND / 2, 0), players[0].color],
 		[new THREE.Vector3(-MAX_BOUND, -MAX_BOUND / 2, 0), players[0].color],
@@ -184,10 +184,10 @@ function setup_scene() {
 		[new THREE.Vector3(0, MAX_BOUND / 2, -MAX_BOUND), players[5].color],
 		[new THREE.Vector3(0, -MAX_BOUND / 2, -MAX_BOUND), players[5].color]
 	];
-	for (var pos = 0; pos < camera_positions.length; pos++) {
-		var center = new THREE.PointLight(camera_positions[pos][1], 3, MAX_BOUND);
-		center.position.set(camera_positions[pos][0].x, camera_positions[pos][0].y,
-			camera_positions[pos][0].z);
+	for (var pos = 0; pos < light_positions.length; pos++) {
+		var center = new THREE.PointLight(light_positions[pos][1], 3, MAX_BOUND);
+		center.position.set(light_positions[pos][0].x, light_positions[pos][0].y,
+			light_positions[pos][0].z);
 		scene.add(center);
 	}
 	renderer = new THREE.WebGLRenderer({
