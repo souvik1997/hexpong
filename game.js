@@ -507,9 +507,9 @@ function Ball(position, velocity, color)
 		if (this.reset)
 		{
 			this.position = this.position0.clone();
-			this.velocity.x = Math.random() * 12 - 6;
-			this.velocity.y = Math.random() * 12 - 6;
-			this.velocity.z = Math.random() * 12 - 6;
+			this.velocity.x = Math.random() * 40 - 20;
+			this.velocity.y = Math.random() * 40 - 20;
+			this.velocity.z = Math.random() * 40 - 20;
 			this.reset = false;
 		}
 		else
@@ -870,6 +870,7 @@ function Player(args)
 			this.moveY(-this.position.y);
 			this.velocity.x = 0
 			this.velocity.y = 0;
+			this.ai_error_factor = Math.round(Math.random()*SIZE*4);
 			this.reset = false;
 		}
 		this.moveX(this.velocity.x);
@@ -937,15 +938,20 @@ function Player(args)
 			instructions[0][2](this);
 		}
 	}
+	this.ai_error_factor = Math.round(Math.random()*SIZE);
+	this.ai_error = function()
+	{
+		return Math.round(randNorm()*this.ai_error_factor);
+	}
 	this.ai_intent = function(ball)
 	{
 		if (this.ai)
 		{
 			var instructions = [];
 			var target_position = ball.position.clone();
-			target_position.x += Math.round(randNorm()*SIZE*4);
-			target_position.y += Math.round(randNorm()*SIZE*4);
-			target_position.z += Math.round(randNorm()*SIZE*4);
+			target_position.x += this.ai_error();
+			target_position.y += this.ai_error();
+			target_position.z += this.ai_error();
 			switch (this.num)
 			{
 				case 0:
