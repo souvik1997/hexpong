@@ -12,7 +12,8 @@ grunt --force
 
 cd ..
 
-# Create icons
+# Create icons. Requires inkscape and imagemagick
+
 inkscape --export-png=assets/images/generated/logo.master.png --export-dpi=200 --export-background-opacity=0 --without-gui logo.svg 
 convert -resize 16x16 assets/images/generated/logo.master.png assets/images/generated/favicon-16.png
 convert -resize 24x24 assets/images/generated/logo.master.png assets/images/generated/favicon-24.png

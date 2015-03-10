@@ -48,7 +48,7 @@ $(document).ready(function()
 
 function download_all(callback)
 {
-	skybox_texture = THREE.ImageUtils.loadTexture('assets/skybox.jpg');
+	skybox_texture = THREE.ImageUtils.loadTexture('assets/images/skybox.jpg');
 	urls = [
 	{
 		url: "assets/sounds/Eric_Skiff_-_03_-_Chibi_Ninja.mp3",
