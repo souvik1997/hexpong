@@ -51,7 +51,10 @@
 			{
 				z-index: 999999;
 			}
-
+			.modal-header, .modal-content, .black-text-modal, .black-text-modal:hover, .black-text-modal:focus {
+				color: #333;
+				text-shadow: none;
+			}
 		</style>
 		<script src="jquery/dist/jquery.min.js"></script>
 		<script src="bootstrap/dist/js/bootstrap.min.js"></script>
@@ -78,6 +81,42 @@
 		</script>
 	</head>
 	<body>
+		<div class="modal fade modal-grey" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="myModalLabel">Credits</h4>
+					</div>
+					<div class="modal-body">
+						<h3>Music:</h3>
+						<p>
+							<a class='black-text-modal' href="https://freemusicarchive.org/music/Rolemusic/Pop_Singles_Compilation_2014/01_rolemusic_-_bacterial_love"><em>Rolemusic</em> by Bacterial Love</a>
+						</p>
+						<p>
+							<a class='black-text-modal' href="http://freemusicarchive.org/music/Eric_Skiff/Resistor_Anthems/eric_skiff_-_03_-_chibi_ninja"><em>Chibi Ninja</em> by Eric Skiff</a>
+						</p>
+						<p>
+							<a class='black-text-modal' href="http://freemusicarchive.org/music/boxcat_games/nameless_the_hackers_rpg_soundtrack/"><em>Epic Song</em> by BoxCat Games</a>
+						</p>
+						<h3>Sound effects:</h3>
+						<p>
+							<a class='black-text-modal' href="http://www.flashkit.com/soundfx/Electronic/Arcade/Arcade_S-wwwbeat-8531/index.php">Button sound by www.beatsuite.com</a>
+						</p>
+						<p>
+							<a class='black-text-modal' href="http://soundbible.com/1151-Grenade.html">Grenade explosion sound by Mike Koenig</a>
+						</p>
+						<h3>Copyright</h3>
+						<p>
+							Copyright © 2015 Souvik Banerjee.
+						</p>
+						<p>
+							<a class='black-text-modal' href="https://github.com/souvik1997/hexpong">Source code released under GNU AGPLv3</a>
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
 		<div class="site-wrapper">
 			<div class="site-wrapper-inner">
 				<div class="cover-container">
@@ -89,7 +128,7 @@
 							<ul class="nav masthead-nav">
 								<li><a href="#">Single Player</a></li>
 								<li><a href="#">Multiplayer</a></li>
-								<li><a href="#">Credits</a></li>
+								<li><a href="#" onclick="$('#myModal').modal('toggle');">Credits</a></li>
 							</ul>
 							</nav>
 						</div>
@@ -97,7 +136,11 @@
 					<canvas id="c"></canvas>
 					<div class="mastfoot">
 						<div class="inner">
-							<p>Cover template for <a href="http://getbootstrap.com">Bootstrap</a>, by <a href="https://twitter.com/mdo">@mdo</a>.</p>
+							<p>
+								<iframe src="https://ghbtns.com/github-btn.html?user=souvik1997&repo=hexpong&type=watch&count=true&v=2" frameborder="0" scrolling="0" width="170px" height="20px"></iframe>
+								<iframe src="https://ghbtns.com/github-btn.html?user=souvik1997&repo=hexpong&type=fork&count=true&v=2" frameborder="0" scrolling="0" width="170px" height="20px"></iframe>
+								<iframe src="https://ghbtns.com/github-btn.html?user=souvik1997&repo=hexpong&type=follow&count=true&v=2" frameborder="0" scrolling="0" width="170px" height="20px"></iframe>
+							</p>
 						</div>
 					</div>
 				</div>
