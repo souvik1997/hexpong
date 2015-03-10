@@ -12,12 +12,12 @@ var objects = [
 	new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-10, -3, 1), 0xffffff),
 ];
 var players = [
-	new Player(0, get_palette_color(0), true, true),
-	new Player(1, get_palette_color(1), true, true),
-	new Player(2, get_palette_color(2), true, true),
-	new Player(3, get_palette_color(3), true, true),
-	new Player(4, get_palette_color(4), true, true),
-	new Player(5, get_palette_color(5), true, true)
+	new Player({num: 0, color: get_palette_color(0), ai: true, userControlled: false}),
+	new Player({num: 1, color: get_palette_color(1), ai: true, userControlled: false}),
+	new Player({num: 2, color: get_palette_color(2), ai: true, userControlled: false}),
+	new Player({num: 3, color: get_palette_color(3), ai: true, userControlled: false}),
+	new Player({num: 4, color: get_palette_color(4), ai: true, userControlled: false}),
+	new Player({num: 5, color: get_palette_color(5), ai: true, userControlled: false})
 ];
 var current_focused_player = 0;
 var PLAYER_ACCEL_CONSTANT = 8;
@@ -46,6 +46,7 @@ $(document).ready(function()
 		add_players_to_scene()
 		add_bounding_cube();
 		start_demo();
+		$("#new-single-player").click(new_single_player_game);
 		animate();
 	});
 });
@@ -364,6 +365,20 @@ function zoom_to(player) // player is a number
 	rotation_intermediate = target_angles[player];
 }
 
+function new_single_player_game()
+{
+	// Set player 0 to be user controlled
+	players[0].ai = false;
+	players[0].userControlled = true;
+	for(var i in players)
+		players[i].reset = true;
+	for(var i in objects)
+		objects[i].reset = true;
+	controls.autoRotate = false;
+	zoom_to(0);
+}
+
+
 function animate()
 {
 	requestAnimationFrame(animate);
@@ -377,13 +392,13 @@ function animate()
 		players[player].ai_exec(instructions);
 		players[player].update();
 	}
-	if (key_controls.left && !players[current_focused_player].ai)
+	if (key_controls.left && players[current_focused_player].userControlled)
 		players[current_focused_player].accelerate(new THREE.Vector2(-PLAYER_ACCEL_CONSTANT, 0));
-	if (key_controls.right && !players[current_focused_player].ai)
+	if (key_controls.right && players[current_focused_player].userControlled)
 		players[current_focused_player].accelerate(new THREE.Vector2(PLAYER_ACCEL_CONSTANT, 0));
-	if (key_controls.up && !players[current_focused_player].ai)
+	if (key_controls.up && players[current_focused_player].userControlled)
 		players[current_focused_player].accelerate(new THREE.Vector2(0, PLAYER_ACCEL_CONSTANT));
-	if (key_controls.down && !players[current_focused_player].ai)
+	if (key_controls.down && players[current_focused_player].userControlled)
 		players[current_focused_player].accelerate(new THREE.Vector2(0, -PLAYER_ACCEL_CONSTANT));
 	if (rotation_intermediate !== undefined)
 	{
@@ -483,10 +498,10 @@ function Ball(position, velocity, color)
 	{
 		if (this.reset)
 		{
-			this.position = this.position0;
-			this.velocity.x = Math.random() * 12;
-			this.velocity.y = Math.random() * 12;
-			this.velocity.z = Math.random() * 12;
+			this.position = this.position0.clone();
+			this.velocity.x = Math.random() * 12 - 6;
+			this.velocity.y = Math.random() * 12 - 6;
+			this.velocity.z = Math.random() * 12 - 6;
 			this.reset = false;
 		}
 		else
@@ -514,6 +529,7 @@ function Ball(position, velocity, color)
 						log("player 1 missed");
 						this.explosion_effect();
 						players[1].scoreDec();
+						this.reset = true;
 					}
 				}
 			}
@@ -539,6 +555,7 @@ function Ball(position, velocity, color)
 						log("player 0 missed");
 						this.explosion_effect();
 						players[0].scoreDec();
+						this.reset = true;
 					}
 				}
 			}
@@ -564,6 +581,7 @@ function Ball(position, velocity, color)
 						log("player 3 missed");
 						this.explosion_effect();
 						players[3].scoreDec();
+						this.reset = true;
 					}
 				}
 			}
@@ -589,6 +607,7 @@ function Ball(position, velocity, color)
 						log("player 2 missed");
 						this.explosion_effect();
 						players[2].scoreDec();
+						this.reset = true;
 					}
 				}
 			}
@@ -614,6 +633,7 @@ function Ball(position, velocity, color)
 						log("player 4 missed");
 						this.explosion_effect();
 						players[4].scoreDec();
+						this.reset = true;
 					}
 				}
 			}
@@ -639,6 +659,7 @@ function Ball(position, velocity, color)
 						log("player 5 missed");
 						this.explosion_effect();
 						players[5].scoreDec();
+						this.reset = true;
 					}
 				}
 			}
@@ -653,25 +674,16 @@ function Ball(position, velocity, color)
 	}
 }
 
-function Player(num, color, enabled, ai)
+function Player(args)
 {
 	var SIZE = 800;
-	this.color = color;
+	this.color = args.color;
 	this.position = new THREE.Vector2(0, 0);
 	this.velocity = new THREE.Vector2(0, 0);
 	this.score = 0;
-	this.num = num;
-	this.scoreInc = function()
-	{
-		this.score++;
-		$("#player"+this.num+"-score").text(this.score);
-	}
-	this.scoreDec = function()
-	{
-		this.score--;
-		$("#player"+this.num+"-score").text(this.score);
-	}
-	if (enabled === undefined)
+	this.num = args.num;
+	this.userControlled = args.userControlled;
+	if (args.enabled === undefined)
 	{
 		this.enabled = true;
 	}
@@ -679,13 +691,13 @@ function Player(num, color, enabled, ai)
 	{
 		this.enabled = enabled;
 	}
-	if (ai === undefined)
+	if (args.ai === undefined)
 	{
 		this.ai = false;
 	}
 	else
 	{
-		this.ai = ai;
+		this.ai = args.ai;
 	}
 	this.mesh = new THREE.Mesh(
 		new THREE.BoxGeometry(SIZE, SIZE, SIZE / 8),
@@ -704,7 +716,7 @@ function Player(num, color, enabled, ai)
 		4: -z
 		5: +z
 	*/
-	switch (num)
+	switch (this.num)
 	{
 		case 0:
 			this.mesh.rotation.y = -Math.PI / 2;
@@ -731,6 +743,17 @@ function Player(num, color, enabled, ai)
 			this.mesh.translateZ(-MAX_BOUND);
 			break;
 	}
+	this.scoreInc = function()
+	{
+		this.score++;
+		$("#player"+this.num+"-score").text(this.score);
+	}
+	this.scoreDec = function()
+	{
+		this.score--;
+		$("#player"+this.num+"-score").text(this.score);
+	}
+	this.reset = false;
 	this.accelerate = function(acc_vec) //THREE.Vector2
 	{
 		this.velocity.x += acc_vec.x;
@@ -831,6 +854,16 @@ function Player(num, color, enabled, ai)
 	}
 	this.update = function()
 	{
+		if (this.reset)
+		{
+			this.score = 0;
+			$("#player"+this.num+"-score").text(this.score);
+			this.moveX(-this.position.x);
+			this.moveY(-this.position.y);
+			this.velocity.x = 0
+			this.velocity.y = 0;
+			this.reset = false;
+		}
 		this.moveX(this.velocity.x);
 		this.moveY(this.velocity.y);
 	}
