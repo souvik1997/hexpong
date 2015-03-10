@@ -7,9 +7,7 @@ var ROTATION_STEP = 0.05;
 var rotation_intermediate; //used for smooth camera rotation
 var objects = [
 	new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, -6, 4), 0xffffff),
-	new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(2, 9, -4), 0xffffff),
-	new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-3, -2, -8), 0xffffff),
-	new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-10, -3, 1), 0xffffff),
+	new Ball(new THREE.Vector3(0, 0, 0), new THREE.Vector3(5, 15, 10), 0xffffff)
 ];
 var players = [
 	new Player({num: 0, color: get_palette_color(0), ai: true, userControlled: false}),
@@ -938,7 +936,7 @@ function Player(args)
 			instructions[0][2](this);
 		}
 	}
-	this.ai_error_factor = Math.round(Math.random()*SIZE);
+	this.ai_error_factor = Math.round(Math.random()*MAX_BOUND);
 	this.ai_error = function()
 	{
 		return Math.round(randNorm()*this.ai_error_factor);
@@ -949,9 +947,6 @@ function Player(args)
 		{
 			var instructions = [];
 			var target_position = ball.position.clone();
-			target_position.x += this.ai_error();
-			target_position.y += this.ai_error();
-			target_position.z += this.ai_error();
 			switch (this.num)
 			{
 				case 0:
@@ -1045,6 +1040,7 @@ function Player(args)
 						instructions[1] = this.stop_x_ai();
 					break;
 			}
+			instructions[0] += this.ai_error();
 			return instructions;
 		}
 	}
