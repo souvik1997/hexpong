@@ -47,6 +47,14 @@ $(document).ready(function()
 		add_bounding_cube();
 		start_demo();
 		$("#new-single-player").click(new_single_player_game);
+		$(window).resize(function()
+		{
+			camera.aspect = window.innerWidth / window.innerHeight;
+			$("#c").width(window.innerWidth);
+			$("#c").height(window.innerHeight);
+			renderer.setSize($("#c").width(), $("#c").height());
+			console.log("resize");
+		});
 		animate();
 	});
 });
