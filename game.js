@@ -357,6 +357,7 @@ function new_single_player_game() {
 		gyro_initial_orientation.gamma = temp.gamma + 1000;
 		gyro_initial_orientation.beta = temp.beta + 1000;
 	}
+	current_focused_player = 0;
 	zoom_to(0);
 }
 
