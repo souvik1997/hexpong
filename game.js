@@ -17,6 +17,7 @@ var skybox_texture;
 var demo;
 var controls;
 var gyro_initial_orientation;
+
 $(document)
 	.ready(function() {
 		initialize_variables();
@@ -360,6 +361,11 @@ function new_single_player_game() {
 	current_focused_player = 0;
 	zoom_to(0);
 }
+
+function new_multiplayer_game() {
+
+}
+
 
 function animate() {
 	requestAnimationFrame(animate);
@@ -1103,6 +1109,56 @@ function Audio() {
 }
 // Helper methods
 
+function Lobby()
+{
+	this.peer = new Peer({key: peerjs_api_key});
+	this.connections = [];
+	var self = this;
+	var on_data_callback = function(data, id)
+	{
+		console.log(data);
+	};
+	this.peer.on('open', function(myid)
+	{
+		self.id = myid;
+	});
+	this.peer.on('connection', function(conn)
+	{
+		log("New connection");
+		conn.on('open', function()
+		{
+			self.connections.push({dataConnection: conn, id: conn.peer});
+			self.connections[conn.peer] = {dataConnection: conn, id: conn.peer};
+			conn.on('data',function(data)
+			{
+				on_data_callback(data,conn.peer);
+			});		
+		})
+	});
+	this.connect = function(id)
+	{
+		var conn = this.peer.connect(id);
+		conn.on('open', function()
+		{
+			self.connections.push({dataConnection: conn, id: conn.peer});
+			self.connections[conn.peer] = {dataConnection: conn, id: conn.peer};
+			conn.on('data',function(data)
+			{
+				on_data_callback(data,conn.peer);
+			});
+		});
+	};
+	this.broadcast = function(data)
+	{
+		for(var i = 0; i < this.connections.length; i++)
+		{
+			if (i !== this.id)
+			{
+				this.connections[i].dataConnection.send(data);
+			}
+		}
+	};
+}
 function log() {
 	if (PRINT_LOGS)
 		for (var i = 0; i < arguments.length; i++) console.log(arguments[i]);
