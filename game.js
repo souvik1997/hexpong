@@ -45,7 +45,7 @@ $(document)
 					var temp = gyro.getOrientation();
 					if (temp !== undefined)
 					{
-						gyro_initial_orientation = {}
+						gyro_initial_orientation = {};
 						gyro_initial_orientation.gamma = temp.gamma + 1000;
 						gyro_initial_orientation.beta = temp.beta + 1000;
 					}
@@ -330,9 +330,9 @@ function start_demo() {
 	controls.autoRotate = true;
 }
 
-function zoom_to(player) // player is a number
-	{
-		var target_angles = [
+function zoom_to(playerNum)
+{
+	var target_angles = [
 		[0, Math.PI / 2],
 		[0, Math.PI * 3 / 2],
 		[-Math.PI / 2, Math.PI],
@@ -340,8 +340,8 @@ function zoom_to(player) // player is a number
 		[0, Math.PI],
 		[0, 0]
 	];
-		rotation_intermediate = target_angles[player];
-	}
+	rotation_intermediate = target_angles[playerNum];
+}
 
 function new_single_player_game() {
 	// Set player 0 to be user controlled
@@ -353,7 +353,7 @@ function new_single_player_game() {
 	var temp = gyro.getOrientation();
 	if (temp !== undefined)
 	{
-		gyro_initial_orientation = {}
+		gyro_initial_orientation = {};
 		gyro_initial_orientation.gamma = temp.gamma + 1000;
 		gyro_initial_orientation.beta = temp.beta + 1000;
 	}
@@ -361,174 +361,174 @@ function new_single_player_game() {
 }
 
 function animate() {
-		requestAnimationFrame(animate);
-		for (var obj = 0; obj < objects.length; obj++) {
-			objects[obj].update();
-		}
-		for (var player = 0; player < players.length; player++) {
-			var instructions = [];
-			for (var object = 0; object < objects.length; object++) instructions.push(
-				players[player].ai_intent(objects[object]));
-			players[player].ai_exec(instructions);
-			players[player].update();
-		}
-		/*	Gyroscope controls
-			Based on portrait+upright mode
-			gamma: roll
-			beta: pitch
-		*/
-		var o = gyro.getOrientation();
-		var GYRO_SIGNIFICANCE_GAMMA = 0.1;
-		var GYRO_SIGNIFICANCE_BETA = 0.1;
-		var GYRO_GAMMA_FACTOR = 3;
-		var GYRO_BETA_FACTOR = 2;
-		if (o !== undefined && gyro_initial_orientation !== undefined && players[current_focused_player].userControlled)
-		{
-			current_gamma = o.gamma + 1000;
-			current_beta = o.beta + 1000;
-			switch (window.orientation)
-			{
-				case 0:
-					log('portrait mode');
-					log(o);
-					if (current_gamma - gyro_initial_orientation.gamma > GYRO_SIGNIFICANCE_GAMMA)
-					{
-						players[current_focused_player].velocity.x = current_gamma - gyro_initial_orientation.gamma;
-						players[current_focused_player].velocity.x *= GYRO_GAMMA_FACTOR;
-					}
-					else if (current_gamma - gyro_initial_orientation.gamma < -GYRO_SIGNIFICANCE_GAMMA)
-					{
-						players[current_focused_player].velocity.x = current_gamma - gyro_initial_orientation.gamma;
-						players[current_focused_player].velocity.x *= GYRO_GAMMA_FACTOR;
-					}
-					else
-					{
-						players[current_focused_player].stop_x();
-					}
-					if (current_beta - gyro_initial_orientation.beta > GYRO_SIGNIFICANCE_BETA)
-					{
-						players[current_focused_player].velocity.y = -(current_beta - gyro_initial_orientation.beta);
-						players[current_focused_player].velocity.y *= GYRO_BETA_FACTOR;
-					}
-					else if (current_beta - gyro_initial_orientation.beta < -GYRO_SIGNIFICANCE_BETA)
-					{
-						players[current_focused_player].velocity.y = -(current_beta - gyro_initial_orientation.beta);
-						players[current_focused_player].velocity.y *= GYRO_BETA_FACTOR;
-					}
-					else
-					{
-						players[current_focused_player].stop_y();
-					}
-				break;
-
-				case -90:
-					log('landscape mode screen turned to the right');
-					if (current_gamma - gyro_initial_orientation.gamma > GYRO_SIGNIFICANCE_GAMMA)
-					{
-						players[current_focused_player].velocity.y = -(current_gamma - gyro_initial_orientation.gamma);
-						players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
-					}
-					else if (current_gamma - gyro_initial_orientation.gamma < -GYRO_SIGNIFICANCE_GAMMA)
-					{
-						players[current_focused_player].velocity.y = -(current_gamma - gyro_initial_orientation.gamma);
-						players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
-					}
-					else
-					{
-						players[current_focused_player].stop_y();
-					}
-					if (current_beta - gyro_initial_orientation.beta > GYRO_SIGNIFICANCE_BETA)
-					{
-						players[current_focused_player].velocity.x = -(current_beta - gyro_initial_orientation.beta);
-						players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
-					}
-					else if (current_beta - gyro_initial_orientation.beta < -GYRO_SIGNIFICANCE_BETA)
-					{
-						players[current_focused_player].velocity.x = -(current_beta - gyro_initial_orientation.beta);
-						players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
-					}
-					else
-					{
-						players[current_focused_player].stop_x();
-					}
-				break;
-
-				case 90:
-					log('landscape mode screen turned to the left');
-					if (current_gamma - gyro_initial_orientation.gamma > GYRO_SIGNIFICANCE_GAMMA)
-					{
-						players[current_focused_player].velocity.y = current_gamma - gyro_initial_orientation.gamma;
-						players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
-					}
-					else if (current_gamma - gyro_initial_orientation.gamma < -GYRO_SIGNIFICANCE_GAMMA)
-					{
-						players[current_focused_player].velocity.y = current_gamma - gyro_initial_orientation.gamma;
-						players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
-					}
-					else
-					{
-						players[current_focused_player].stop_y();
-					}
-					if (current_beta - gyro_initial_orientation.beta > GYRO_SIGNIFICANCE_BETA)
-					{
-						players[current_focused_player].velocity.x = current_beta - gyro_initial_orientation.beta;
-						players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
-					}
-					else if (current_beta - gyro_initial_orientation.beta < -GYRO_SIGNIFICANCE_BETA)
-					{
-						players[current_focused_player].velocity.x = current_beta - gyro_initial_orientation.beta;
-						players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
-					}
-					else
-					{
-						players[current_focused_player].stop_x();
-					}
-				break;
-			}
-		}
-		if (key_controls.left && players[current_focused_player].userControlled)
-			players[current_focused_player].accelerate(new THREE.Vector2(-
-				PLAYER_ACCEL_CONSTANT, 0));
-		if (key_controls.right && players[current_focused_player].userControlled)
-			players[current_focused_player].accelerate(new THREE.Vector2(
-				PLAYER_ACCEL_CONSTANT, 0));
-		if (key_controls.up && players[current_focused_player].userControlled) players[
-			current_focused_player].accelerate(new THREE.Vector2(0,
-			PLAYER_ACCEL_CONSTANT));
-		if (key_controls.down && players[current_focused_player].userControlled)
-			players[current_focused_player].accelerate(new THREE.Vector2(0, -
-				PLAYER_ACCEL_CONSTANT));
-		if (rotation_intermediate !== undefined) {
-			var cur_pos = get_lat_long();
-			var diff_lat = rotation_intermediate[0] - cur_pos[0];
-			var diff_long = 0;
-			if (Math.abs(rotation_intermediate[1] - cur_pos[1]) > Math.abs(
-				rotation_intermediate[1] - cur_pos[1] + Math.PI * 2)) //find the shortest path
-				diff_long = -(rotation_intermediate[1] - cur_pos[1] - Math.PI * 2);
-			else diff_long = rotation_intermediate[1] - cur_pos[1];
-			if (rotation_intermediate[1] === 0) {
-				var diff_long2 = diff_long;
-				if (Math.abs(Math.PI * 2 - cur_pos[1]) > Math.abs(Math.PI * 2 - cur_pos[1] +
-					Math.PI * 2)) //find the shortest path
-					diff_long2 = -(Math.PI * 2 - cur_pos[1] - Math.PI * 2);
-				else diff_long2 = Math.PI * 2 - cur_pos[1];
-				diff_long = diff_long < diff_long2 ? diff_long : diff_long2;
-			}
-			if (Math.abs(diff_lat) > 0.01) {
-				if (Math.abs(diff_lat) < ROTATION_STEP) controls.rotateUp(diff_lat);
-				else controls.rotateUp(ROTATION_STEP * Math.abs(diff_lat) / diff_lat);
-			}
-			if (Math.abs(diff_long) > 0.01) {
-				if (Math.abs(diff_long) < ROTATION_STEP) controls.rotateLeft(-diff_long);
-				else controls.rotateLeft(ROTATION_STEP * -Math.abs(diff_long) / diff_long);
-			}
-			if (Math.abs(diff_lat) < 0.01 && Math.abs(diff_long) < 0.01)
-				rotation_intermediate = undefined;
-		}
-		controls.update();
-		renderer.render(scene, camera);
+	requestAnimationFrame(animate);
+	for (var obj = 0; obj < objects.length; obj++) {
+		objects[obj].update();
 	}
-	//Class constructors
+	for (var player = 0; player < players.length; player++) {
+		var instructions = [];
+		for (var object = 0; object < objects.length; object++) instructions.push(
+			players[player].ai_intent(objects[object]));
+		players[player].ai_exec(instructions);
+		players[player].update();
+	}
+	/*	Gyroscope controls
+		Based on portrait+upright mode
+		gamma: roll
+		beta: pitch
+	*/
+	var o = gyro.getOrientation();
+	var GYRO_SIGNIFICANCE_GAMMA = 0.1;
+	var GYRO_SIGNIFICANCE_BETA = 0.1;
+	var GYRO_GAMMA_FACTOR = 3;
+	var GYRO_BETA_FACTOR = 2;
+	if (o !== undefined && gyro_initial_orientation !== undefined && players[current_focused_player].userControlled)
+	{
+		var current_gamma = o.gamma + 1000;
+		var current_beta = o.beta + 1000;
+		switch (window.orientation)
+		{
+			case 0:
+				log('portrait mode');
+				log(o);
+				if (current_gamma - gyro_initial_orientation.gamma > GYRO_SIGNIFICANCE_GAMMA)
+				{
+					players[current_focused_player].velocity.x = current_gamma - gyro_initial_orientation.gamma;
+					players[current_focused_player].velocity.x *= GYRO_GAMMA_FACTOR;
+				}
+				else if (current_gamma - gyro_initial_orientation.gamma < -GYRO_SIGNIFICANCE_GAMMA)
+				{
+					players[current_focused_player].velocity.x = current_gamma - gyro_initial_orientation.gamma;
+					players[current_focused_player].velocity.x *= GYRO_GAMMA_FACTOR;
+				}
+				else
+				{
+					players[current_focused_player].stop_x();
+				}
+				if (current_beta - gyro_initial_orientation.beta > GYRO_SIGNIFICANCE_BETA)
+				{
+					players[current_focused_player].velocity.y = -(current_beta - gyro_initial_orientation.beta);
+					players[current_focused_player].velocity.y *= GYRO_BETA_FACTOR;
+				}
+				else if (current_beta - gyro_initial_orientation.beta < -GYRO_SIGNIFICANCE_BETA)
+				{
+					players[current_focused_player].velocity.y = -(current_beta - gyro_initial_orientation.beta);
+					players[current_focused_player].velocity.y *= GYRO_BETA_FACTOR;
+				}
+				else
+				{
+					players[current_focused_player].stop_y();
+				}
+			break;
+
+			case -90:
+				log('landscape mode screen turned to the right');
+				if (current_gamma - gyro_initial_orientation.gamma > GYRO_SIGNIFICANCE_GAMMA)
+				{
+					players[current_focused_player].velocity.y = -(current_gamma - gyro_initial_orientation.gamma);
+					players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
+				}
+				else if (current_gamma - gyro_initial_orientation.gamma < -GYRO_SIGNIFICANCE_GAMMA)
+				{
+					players[current_focused_player].velocity.y = -(current_gamma - gyro_initial_orientation.gamma);
+					players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
+				}
+				else
+				{
+					players[current_focused_player].stop_y();
+				}
+				if (current_beta - gyro_initial_orientation.beta > GYRO_SIGNIFICANCE_BETA)
+				{
+					players[current_focused_player].velocity.x = -(current_beta - gyro_initial_orientation.beta);
+					players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
+				}
+				else if (current_beta - gyro_initial_orientation.beta < -GYRO_SIGNIFICANCE_BETA)
+				{
+					players[current_focused_player].velocity.x = -(current_beta - gyro_initial_orientation.beta);
+					players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
+				}
+				else
+				{
+					players[current_focused_player].stop_x();
+				}
+			break;
+
+			case 90:
+				log('landscape mode screen turned to the left');
+				if (current_gamma - gyro_initial_orientation.gamma > GYRO_SIGNIFICANCE_GAMMA)
+				{
+					players[current_focused_player].velocity.y = current_gamma - gyro_initial_orientation.gamma;
+					players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
+				}
+				else if (current_gamma - gyro_initial_orientation.gamma < -GYRO_SIGNIFICANCE_GAMMA)
+				{
+					players[current_focused_player].velocity.y = current_gamma - gyro_initial_orientation.gamma;
+					players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
+				}
+				else
+				{
+					players[current_focused_player].stop_y();
+				}
+				if (current_beta - gyro_initial_orientation.beta > GYRO_SIGNIFICANCE_BETA)
+				{
+					players[current_focused_player].velocity.x = current_beta - gyro_initial_orientation.beta;
+					players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
+				}
+				else if (current_beta - gyro_initial_orientation.beta < -GYRO_SIGNIFICANCE_BETA)
+				{
+					players[current_focused_player].velocity.x = current_beta - gyro_initial_orientation.beta;
+					players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
+				}
+				else
+				{
+					players[current_focused_player].stop_x();
+				}
+			break;
+		}
+	}
+	if (key_controls.left && players[current_focused_player].userControlled)
+		players[current_focused_player].accelerate(new THREE.Vector2(-
+			PLAYER_ACCEL_CONSTANT, 0));
+	if (key_controls.right && players[current_focused_player].userControlled)
+		players[current_focused_player].accelerate(new THREE.Vector2(
+			PLAYER_ACCEL_CONSTANT, 0));
+	if (key_controls.up && players[current_focused_player].userControlled) players[
+		current_focused_player].accelerate(new THREE.Vector2(0,
+		PLAYER_ACCEL_CONSTANT));
+	if (key_controls.down && players[current_focused_player].userControlled)
+		players[current_focused_player].accelerate(new THREE.Vector2(0, -
+			PLAYER_ACCEL_CONSTANT));
+	if (rotation_intermediate !== undefined) {
+		var cur_pos = get_lat_long();
+		var diff_lat = rotation_intermediate[0] - cur_pos[0];
+		var diff_long = 0;
+		if (Math.abs(rotation_intermediate[1] - cur_pos[1]) > Math.abs(
+			rotation_intermediate[1] - cur_pos[1] + Math.PI * 2)) //find the shortest path
+			diff_long = -(rotation_intermediate[1] - cur_pos[1] - Math.PI * 2);
+		else diff_long = rotation_intermediate[1] - cur_pos[1];
+		if (rotation_intermediate[1] === 0) {
+			var diff_long2 = diff_long;
+			if (Math.abs(Math.PI * 2 - cur_pos[1]) > Math.abs(Math.PI * 2 - cur_pos[1] +
+				Math.PI * 2)) //find the shortest path
+				diff_long2 = -(Math.PI * 2 - cur_pos[1] - Math.PI * 2);
+			else diff_long2 = Math.PI * 2 - cur_pos[1];
+			diff_long = diff_long < diff_long2 ? diff_long : diff_long2;
+		}
+		if (Math.abs(diff_lat) > 0.01) {
+			if (Math.abs(diff_lat) < ROTATION_STEP) controls.rotateUp(diff_lat);
+			else controls.rotateUp(ROTATION_STEP * Math.abs(diff_lat) / diff_lat);
+		}
+		if (Math.abs(diff_long) > 0.01) {
+			if (Math.abs(diff_long) < ROTATION_STEP) controls.rotateLeft(-diff_long);
+			else controls.rotateLeft(ROTATION_STEP * -Math.abs(diff_long) / diff_long);
+		}
+		if (Math.abs(diff_lat) < 0.01 && Math.abs(diff_long) < 0.01)
+			rotation_intermediate = undefined;
+	}
+	controls.update();
+	renderer.render(scene, camera);
+}
+//Class constructors
 
 function Ball(position, velocity, color) {
 	var RADIUS = 100;
@@ -1124,23 +1124,23 @@ function get_lat_long() {
 	return [latitude, longitude];
 }
 
-function checkCollisions(mesh, collidableMeshList) // http://stackoverflow.com/questions/11473755/how-to-detect-collision-in-three-js
-	{
-		for (var vertexIndex = 0; vertexIndex < mesh.geometry.vertices.length; vertexIndex++) {
-			var localVertex = mesh.geometry.vertices[vertexIndex].clone();
-			var globalVertex = localVertex.applyMatrix4(mesh.matrix);
-			var directionVector = globalVertex.sub(mesh.position);
-			var ray = new THREE.Raycaster(mesh.position, directionVector.clone()
-				.normalize());
-			var collisionResults = ray.intersectObjects(collidableMeshList);
-			if (collisionResults.length > 0 && collisionResults[0].distance <
-				directionVector.length()) {
-				log("collision");
-				return true;
-			}
+function checkCollisions(mesh, collidableMeshList) { // http://stackoverflow.com/questions/11473755/how-to-detect-collision-in-three-js
+
+	for (var vertexIndex = 0; vertexIndex < mesh.geometry.vertices.length; vertexIndex++) {
+		var localVertex = mesh.geometry.vertices[vertexIndex].clone();
+		var globalVertex = localVertex.applyMatrix4(mesh.matrix);
+		var directionVector = globalVertex.sub(mesh.position);
+		var ray = new THREE.Raycaster(mesh.position, directionVector.clone()
+			.normalize());
+		var collisionResults = ray.intersectObjects(collidableMeshList);
+		if (collisionResults.length > 0 && collisionResults[0].distance <
+			directionVector.length()) {
+			log("collision");
+			return true;
 		}
-		return false;
 	}
+	return false;
+}
 
 function get_palette_color(num) {
 	var palette = [
@@ -1225,11 +1225,11 @@ function initialize_variables() {
 	global_audio_context = new AudioContext();
 	bg_audio = new Audio();
 	demo = false;
-	$(window).on("orientationchange",function(e){
+	$(window).on("orientationchange",function(){
 		var temp = gyro.getOrientation();
 		if (temp !== undefined)
 		{
-			gyro_initial_orientation = {}
+			gyro_initial_orientation = {};
 			gyro_initial_orientation.gamma = temp.gamma + 1000;
 			gyro_initial_orientation.beta = temp.beta + 1000;
 		}
