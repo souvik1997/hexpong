@@ -1270,6 +1270,14 @@ function Lobby(master, master_peer_id, maximum_players)
 			}
 		}
 	};
+	this.send = function(message, destination_peer)
+	{
+		if (destination_peer === undefined) //assume master is destination
+		{
+			destination_peer = master_peer_id;
+		}
+		this.connections[destination_peer].dataConnection.send(message);
+	}
 	this.on = function(event, callback)
 	{
 		this.callbacks[event] = callback;
