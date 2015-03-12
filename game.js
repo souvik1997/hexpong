@@ -17,6 +17,7 @@ var skybox_texture;
 var demo;
 var controls;
 var gyro_initial_orientation;
+var lobby;
 
 $(document)
 	.ready(function() {
@@ -362,178 +363,216 @@ function new_single_player_game() {
 	zoom_to(0);
 }
 
-function new_multiplayer_game() {
-
+function new_multiplayer_game(master, master_peer_id) {
+	if (master)
+		lobby = new Lobby(master);
+	else
+		lobby = new Lobby(master, master_peer_id);
 }
 
 
 function animate() {
-	requestAnimationFrame(animate);
-	for (var obj = 0; obj < objects.length; obj++) {
-		objects[obj].update();
-	}
-	for (var player = 0; player < players.length; player++) {
-		var instructions = [];
-		for (var object = 0; object < objects.length; object++) instructions.push(
-			players[player].ai_intent(objects[object]));
-		players[player].ai_exec(instructions);
-		players[player].update();
-	}
-	/*	Gyroscope controls
-		Based on portrait+upright mode
-		gamma: roll
-		beta: pitch
-	*/
-	var o = gyro.getOrientation();
-	var GYRO_SIGNIFICANCE_GAMMA = 0.1;
-	var GYRO_SIGNIFICANCE_BETA = 0.1;
-	var GYRO_GAMMA_FACTOR = 3;
-	var GYRO_BETA_FACTOR = 2;
-	if (o !== undefined && gyro_initial_orientation !== undefined && players[current_focused_player].userControlled)
+	
+	var animation_inner_function = function()
 	{
-		var current_gamma = o.gamma + 1000;
-		var current_beta = o.beta + 1000;
-		switch (window.orientation)
+		/*	Gyroscope controls
+			Based on portrait+upright mode
+			gamma: roll
+			beta: pitch
+		*/
+		var o = gyro.getOrientation();
+		var GYRO_SIGNIFICANCE_GAMMA = 0.1;
+		var GYRO_SIGNIFICANCE_BETA = 0.1;
+		var GYRO_GAMMA_FACTOR = 3;
+		var GYRO_BETA_FACTOR = 2;
+		if (o !== undefined && gyro_initial_orientation !== undefined && players[current_focused_player].userControlled)
 		{
-			case 0:
-				log('portrait mode');
-				log(o);
-				if (current_gamma - gyro_initial_orientation.gamma > GYRO_SIGNIFICANCE_GAMMA)
-				{
-					players[current_focused_player].velocity.x = current_gamma - gyro_initial_orientation.gamma;
-					players[current_focused_player].velocity.x *= GYRO_GAMMA_FACTOR;
-				}
-				else if (current_gamma - gyro_initial_orientation.gamma < -GYRO_SIGNIFICANCE_GAMMA)
-				{
-					players[current_focused_player].velocity.x = current_gamma - gyro_initial_orientation.gamma;
-					players[current_focused_player].velocity.x *= GYRO_GAMMA_FACTOR;
-				}
-				else
-				{
-					players[current_focused_player].stop_x();
-				}
-				if (current_beta - gyro_initial_orientation.beta > GYRO_SIGNIFICANCE_BETA)
-				{
-					players[current_focused_player].velocity.y = -(current_beta - gyro_initial_orientation.beta);
-					players[current_focused_player].velocity.y *= GYRO_BETA_FACTOR;
-				}
-				else if (current_beta - gyro_initial_orientation.beta < -GYRO_SIGNIFICANCE_BETA)
-				{
-					players[current_focused_player].velocity.y = -(current_beta - gyro_initial_orientation.beta);
-					players[current_focused_player].velocity.y *= GYRO_BETA_FACTOR;
-				}
-				else
-				{
-					players[current_focused_player].stop_y();
-				}
-			break;
+			var current_gamma = o.gamma + 1000;
+			var current_beta = o.beta + 1000;
+			switch (window.orientation)
+			{
+				case 0:
+					log('portrait mode');
+					log(o);
+					if (current_gamma - gyro_initial_orientation.gamma > GYRO_SIGNIFICANCE_GAMMA)
+					{
+						players[current_focused_player].velocity.x = current_gamma - gyro_initial_orientation.gamma;
+						players[current_focused_player].velocity.x *= GYRO_GAMMA_FACTOR;
+					}
+					else if (current_gamma - gyro_initial_orientation.gamma < -GYRO_SIGNIFICANCE_GAMMA)
+					{
+						players[current_focused_player].velocity.x = current_gamma - gyro_initial_orientation.gamma;
+						players[current_focused_player].velocity.x *= GYRO_GAMMA_FACTOR;
+					}
+					else
+					{
+						players[current_focused_player].stop_x();
+					}
+					if (current_beta - gyro_initial_orientation.beta > GYRO_SIGNIFICANCE_BETA)
+					{
+						players[current_focused_player].velocity.y = -(current_beta - gyro_initial_orientation.beta);
+						players[current_focused_player].velocity.y *= GYRO_BETA_FACTOR;
+					}
+					else if (current_beta - gyro_initial_orientation.beta < -GYRO_SIGNIFICANCE_BETA)
+					{
+						players[current_focused_player].velocity.y = -(current_beta - gyro_initial_orientation.beta);
+						players[current_focused_player].velocity.y *= GYRO_BETA_FACTOR;
+					}
+					else
+					{
+						players[current_focused_player].stop_y();
+					}
+				break;
 
-			case -90:
-				log('landscape mode screen turned to the right');
-				if (current_gamma - gyro_initial_orientation.gamma > GYRO_SIGNIFICANCE_GAMMA)
-				{
-					players[current_focused_player].velocity.y = -(current_gamma - gyro_initial_orientation.gamma);
-					players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
-				}
-				else if (current_gamma - gyro_initial_orientation.gamma < -GYRO_SIGNIFICANCE_GAMMA)
-				{
-					players[current_focused_player].velocity.y = -(current_gamma - gyro_initial_orientation.gamma);
-					players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
-				}
-				else
-				{
-					players[current_focused_player].stop_y();
-				}
-				if (current_beta - gyro_initial_orientation.beta > GYRO_SIGNIFICANCE_BETA)
-				{
-					players[current_focused_player].velocity.x = -(current_beta - gyro_initial_orientation.beta);
-					players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
-				}
-				else if (current_beta - gyro_initial_orientation.beta < -GYRO_SIGNIFICANCE_BETA)
-				{
-					players[current_focused_player].velocity.x = -(current_beta - gyro_initial_orientation.beta);
-					players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
-				}
-				else
-				{
-					players[current_focused_player].stop_x();
-				}
-			break;
+				case -90:
+					log('landscape mode screen turned to the right');
+					if (current_gamma - gyro_initial_orientation.gamma > GYRO_SIGNIFICANCE_GAMMA)
+					{
+						players[current_focused_player].velocity.y = -(current_gamma - gyro_initial_orientation.gamma);
+						players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
+					}
+					else if (current_gamma - gyro_initial_orientation.gamma < -GYRO_SIGNIFICANCE_GAMMA)
+					{
+						players[current_focused_player].velocity.y = -(current_gamma - gyro_initial_orientation.gamma);
+						players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
+					}
+					else
+					{
+						players[current_focused_player].stop_y();
+					}
+					if (current_beta - gyro_initial_orientation.beta > GYRO_SIGNIFICANCE_BETA)
+					{
+						players[current_focused_player].velocity.x = -(current_beta - gyro_initial_orientation.beta);
+						players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
+					}
+					else if (current_beta - gyro_initial_orientation.beta < -GYRO_SIGNIFICANCE_BETA)
+					{
+						players[current_focused_player].velocity.x = -(current_beta - gyro_initial_orientation.beta);
+						players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
+					}
+					else
+					{
+						players[current_focused_player].stop_x();
+					}
+				break;
 
-			case 90:
-				log('landscape mode screen turned to the left');
-				if (current_gamma - gyro_initial_orientation.gamma > GYRO_SIGNIFICANCE_GAMMA)
-				{
-					players[current_focused_player].velocity.y = current_gamma - gyro_initial_orientation.gamma;
-					players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
-				}
-				else if (current_gamma - gyro_initial_orientation.gamma < -GYRO_SIGNIFICANCE_GAMMA)
-				{
-					players[current_focused_player].velocity.y = current_gamma - gyro_initial_orientation.gamma;
-					players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
-				}
-				else
-				{
-					players[current_focused_player].stop_y();
-				}
-				if (current_beta - gyro_initial_orientation.beta > GYRO_SIGNIFICANCE_BETA)
-				{
-					players[current_focused_player].velocity.x = current_beta - gyro_initial_orientation.beta;
-					players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
-				}
-				else if (current_beta - gyro_initial_orientation.beta < -GYRO_SIGNIFICANCE_BETA)
-				{
-					players[current_focused_player].velocity.x = current_beta - gyro_initial_orientation.beta;
-					players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
-				}
-				else
-				{
-					players[current_focused_player].stop_x();
-				}
-			break;
+				case 90:
+					log('landscape mode screen turned to the left');
+					if (current_gamma - gyro_initial_orientation.gamma > GYRO_SIGNIFICANCE_GAMMA)
+					{
+						players[current_focused_player].velocity.y = current_gamma - gyro_initial_orientation.gamma;
+						players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
+					}
+					else if (current_gamma - gyro_initial_orientation.gamma < -GYRO_SIGNIFICANCE_GAMMA)
+					{
+						players[current_focused_player].velocity.y = current_gamma - gyro_initial_orientation.gamma;
+						players[current_focused_player].velocity.y *= GYRO_GAMMA_FACTOR;
+					}
+					else
+					{
+						players[current_focused_player].stop_y();
+					}
+					if (current_beta - gyro_initial_orientation.beta > GYRO_SIGNIFICANCE_BETA)
+					{
+						players[current_focused_player].velocity.x = current_beta - gyro_initial_orientation.beta;
+						players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
+					}
+					else if (current_beta - gyro_initial_orientation.beta < -GYRO_SIGNIFICANCE_BETA)
+					{
+						players[current_focused_player].velocity.x = current_beta - gyro_initial_orientation.beta;
+						players[current_focused_player].velocity.x *= GYRO_BETA_FACTOR;
+					}
+					else
+					{
+						players[current_focused_player].stop_x();
+					}
+				break;
+			}
 		}
-	}
-	if (key_controls.left && players[current_focused_player].userControlled)
-		players[current_focused_player].accelerate(new THREE.Vector2(-
-			PLAYER_ACCEL_CONSTANT, 0));
-	if (key_controls.right && players[current_focused_player].userControlled)
-		players[current_focused_player].accelerate(new THREE.Vector2(
-			PLAYER_ACCEL_CONSTANT, 0));
-	if (key_controls.up && players[current_focused_player].userControlled) players[
-		current_focused_player].accelerate(new THREE.Vector2(0,
-		PLAYER_ACCEL_CONSTANT));
-	if (key_controls.down && players[current_focused_player].userControlled)
-		players[current_focused_player].accelerate(new THREE.Vector2(0, -
+		if (key_controls.left && players[current_focused_player].userControlled)
+			players[current_focused_player].accelerate(new THREE.Vector2(-
+				PLAYER_ACCEL_CONSTANT, 0));
+		if (key_controls.right && players[current_focused_player].userControlled)
+			players[current_focused_player].accelerate(new THREE.Vector2(
+				PLAYER_ACCEL_CONSTANT, 0));
+		if (key_controls.up && players[current_focused_player].userControlled) players[
+			current_focused_player].accelerate(new THREE.Vector2(0,
 			PLAYER_ACCEL_CONSTANT));
-	if (rotation_intermediate !== undefined) {
-		var cur_pos = get_lat_long();
-		var diff_lat = rotation_intermediate[0] - cur_pos[0];
-		var diff_long = 0;
-		if (Math.abs(rotation_intermediate[1] - cur_pos[1]) > Math.abs(
-			rotation_intermediate[1] - cur_pos[1] + Math.PI * 2)) //find the shortest path
-			diff_long = -(rotation_intermediate[1] - cur_pos[1] - Math.PI * 2);
-		else diff_long = rotation_intermediate[1] - cur_pos[1];
-		if (rotation_intermediate[1] === 0) {
-			var diff_long2 = diff_long;
-			if (Math.abs(Math.PI * 2 - cur_pos[1]) > Math.abs(Math.PI * 2 - cur_pos[1] +
-				Math.PI * 2)) //find the shortest path
-				diff_long2 = -(Math.PI * 2 - cur_pos[1] - Math.PI * 2);
-			else diff_long2 = Math.PI * 2 - cur_pos[1];
-			diff_long = diff_long < diff_long2 ? diff_long : diff_long2;
+		if (key_controls.down && players[current_focused_player].userControlled)
+			players[current_focused_player].accelerate(new THREE.Vector2(0, -
+				PLAYER_ACCEL_CONSTANT));
+		if (rotation_intermediate !== undefined) {
+			var cur_pos = get_lat_long();
+			var diff_lat = rotation_intermediate[0] - cur_pos[0];
+			var diff_long = 0;
+			if (Math.abs(rotation_intermediate[1] - cur_pos[1]) > Math.abs(
+				rotation_intermediate[1] - cur_pos[1] + Math.PI * 2)) //find the shortest path
+				diff_long = -(rotation_intermediate[1] - cur_pos[1] - Math.PI * 2);
+			else diff_long = rotation_intermediate[1] - cur_pos[1];
+			if (rotation_intermediate[1] === 0) {
+				var diff_long2 = diff_long;
+				if (Math.abs(Math.PI * 2 - cur_pos[1]) > Math.abs(Math.PI * 2 - cur_pos[1] +
+					Math.PI * 2)) //find the shortest path
+					diff_long2 = -(Math.PI * 2 - cur_pos[1] - Math.PI * 2);
+				else diff_long2 = Math.PI * 2 - cur_pos[1];
+				diff_long = diff_long < diff_long2 ? diff_long : diff_long2;
+			}
+			if (Math.abs(diff_lat) > 0.01) {
+				if (Math.abs(diff_lat) < ROTATION_STEP) controls.rotateUp(diff_lat);
+				else controls.rotateUp(ROTATION_STEP * Math.abs(diff_lat) / diff_lat);
+			}
+			if (Math.abs(diff_long) > 0.01) {
+				if (Math.abs(diff_long) < ROTATION_STEP) controls.rotateLeft(-diff_long);
+				else controls.rotateLeft(ROTATION_STEP * -Math.abs(diff_long) / diff_long);
+			}
+			if (Math.abs(diff_lat) < 0.01 && Math.abs(diff_long) < 0.01)
+				rotation_intermediate = undefined;
 		}
-		if (Math.abs(diff_lat) > 0.01) {
-			if (Math.abs(diff_lat) < ROTATION_STEP) controls.rotateUp(diff_lat);
-			else controls.rotateUp(ROTATION_STEP * Math.abs(diff_lat) / diff_lat);
+		for (var obj = 0; obj < objects.length; obj++) {
+			objects[obj].update();
 		}
-		if (Math.abs(diff_long) > 0.01) {
-			if (Math.abs(diff_long) < ROTATION_STEP) controls.rotateLeft(-diff_long);
-			else controls.rotateLeft(ROTATION_STEP * -Math.abs(diff_long) / diff_long);
+		for (var player = 0; player < players.length; player++) {
+			var instructions = [];
+			for (var object = 0; object < objects.length; object++) instructions.push(
+				players[player].ai_intent(objects[object]));
+			players[player].ai_exec(instructions);
+			players[player].update();
 		}
-		if (Math.abs(diff_lat) < 0.01 && Math.abs(diff_long) < 0.01)
-			rotation_intermediate = undefined;
 	}
-	controls.update();
-	renderer.render(scene, camera);
+	if (lobby !== undefined) // in multiplayer game
+	{
+		if (lobby.masterNode)
+		{
+			lobby.game_state_update_callback = function() //when master node gets player info from all players
+			{
+				this.broadcast(this.game_state());
+				animation_inner_function();
+				controls.update();
+				renderer.render(scene, camera);
+				requestAnimationFrame(animate);
+				lobby.game_state_update_callback = function(){};
+			};
+		}
+		else
+		{
+			lobby.broadcast({command: lobby.commands.player_data, player: players[lobby.my_player_number]});
+			lobby.game_state_update_callback = function() //when non-master node gets game state from master
+			{
+				animation_inner_function();
+				controls.update();
+				renderer.render(scene, camera);
+				requestAnimationFrame(animate);
+				lobby.game_state_update_callback = function(){};
+			};
+		}
+	}
+	else
+	{
+		animation_inner_function();
+		controls.update();
+		renderer.render(scene, camera);
+		requestAnimationFrame(animate);
+	}
 }
 //Class constructors
 
@@ -728,6 +767,33 @@ function Ball(position, velocity, color) {
 		this.mesh.translateY(this.position.y - this.mesh.position.y);
 		this.mesh.translateZ(this.position.z - this.mesh.position.z);
 	};
+	this.duplicate_mini = function()
+	{
+		var new_ball = {};
+		new_ball.color = this.color;
+		new_ball.position = {};
+		new_ball.position0 = {};
+		new_ball.velocity = {};
+		new_ball.position.x = this.position.x;
+		new_ball.position.y = this.position.y;
+		new_ball.position0.x = this.position0.x;
+		new_ball.position0.y = this.position0.y;
+		new_ball.velocity.x = this.velocity.x;
+		new_ball.velocity.y = this.velocity.y;
+		new_ball.reset = this.reset;
+		return new_ball;
+	}
+	this.merge = function(new_ball)
+	{
+		this.color = new_ball.color;
+		this.position.x = new_ball.position.x;
+		this.position.y = new_ball.position.y;
+		this.position0.x = new_ball.position0.x;
+		this.position0.y = new_ball.position0.y;
+		this.velocity.x = new_ball.velocity.x;
+		this.velocity.y = new_ball.velocity.y;
+		this.reset = new_ball.reset;
+	}
 }
 
 function Player(args) {
@@ -1007,6 +1073,19 @@ function Player(args) {
 			return instructions;
 		}
 	};
+	this.merge = function(new_player)
+	{
+		this.color = new_player.color;
+		this.moveX(new_player.position.x - this.position.x)
+		this.moveY(new_player.position.y - this.position.y)
+		this.velocity.x = new_player.velocity.x;
+		this.velocity.y = new_player.velocity.y;
+		this.score = new_player.score;
+		this.enabled = new_player.enabled;
+		this.ai = new_player.ai;
+		this.reset = new_player.reset;
+		this.ai_error_factor = new_player.ai_error_factor;
+	}
 }
 
 function Audio() {
@@ -1109,54 +1188,91 @@ function Audio() {
 }
 // Helper methods
 
-function Lobby()
+function Lobby(master, master_peer_id, maximum_players)
 {
-	this.peer = new Peer({key: peerjs_api_key});
+	this.my_player_number = 0;
 	this.connections = [];
+	this.masterNode = master;
+	this.callbacks = [];
 	var self = this;
-	var on_data_callback = function(data, id)
+	var maximum_players = maximum_players;
+	this.init = function()
 	{
-		console.log(data);
-	};
-	this.peer.on('open', function(myid)
-	{
-		self.id = myid;
-	});
-	this.peer.on('connection', function(conn)
-	{
-		log("New connection");
-		conn.on('open', function()
+		this.peer = new Peer({key: peerjs_api_key});
+		this.peer.on('open', function(myid)
 		{
-			self.connections.push({dataConnection: conn, id: conn.peer});
-			self.connections[conn.peer] = {dataConnection: conn, id: conn.peer};
-			conn.on('data',function(data)
+			self.id = myid;
+			if (!master)
 			{
-				on_data_callback(data,conn.peer);
-			});		
-		})
-	});
+				self.connect(master_peer_id);
+			}
+			if (self.callbacks['init'] !== undefined)
+				self.callbacks['init']();
+		});
+		this.peer.on('connection', function(conn)
+		{
+			log("New connection");
+			conn.on('open', function()
+			{
+				if (self.masterNode)
+				{
+					if (self.connections.length > maximum_players)
+					{
+						if (self.callbacks['lobbyoverflow'] !== undefined)
+							self.callbacks['lobbyoverflow'](conn);
+					}
+					else
+					{
+						self.connections.push({dataConnection: conn, id: conn.peer, updated: false});
+						self.connections[conn.peer] = {dataConnection: conn, id: conn.peer, updated: false};
+						conn.on('data',function(data)
+						{
+							if (self.callbacks['data'] !== undefined)
+								self.callbacks['data'](conn,data);
+						});
+						if (self.connections.length > maximum_players)
+						{
+							if (self.callbacks['lobbyfull'] !== undefined)
+								self.callbacks['lobbyfull'](conn);
+						}
+					}
+				}
+			})
+		});
+	}
 	this.connect = function(id)
 	{
 		var conn = this.peer.connect(id);
 		conn.on('open', function()
 		{
-			self.connections.push({dataConnection: conn, id: conn.peer});
-			self.connections[conn.peer] = {dataConnection: conn, id: conn.peer};
-			conn.on('data',function(data)
+			if (!self.masterNode)
 			{
-				on_data_callback(data,conn.peer);
-			});
+				self.connections.push({dataConnection: conn, id: conn.peer, updated: false});
+				self.connections[conn.peer] = {dataConnection: conn, id: conn.peer, updated: false};
+				conn.on('data',function(data)
+				{
+					if (self.callbacks['data'] !== undefined)
+						self.callbacks['data'](conn,data);
+				});
+			}
 		});
 	};
 	this.broadcast = function(data)
 	{
-		for(var i = 0; i < this.connections.length; i++)
+		if (this.masterNode)
 		{
-			if (i !== this.id)
+			for(var i = 0; i < this.connections.length; i++)
 			{
-				this.connections[i].dataConnection.send(data);
+				if (i !== this.id)
+				{
+					this.connections[i].dataConnection.send(data);
+				}
 			}
 		}
+	};
+	this.on = function(event, callback)
+	{
+		this.callbacks[event] = callback;
 	};
 }
 function log() {
