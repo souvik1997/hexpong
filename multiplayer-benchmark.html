@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<title>Hexpong</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<script src="jquery/dist/jquery.min.js"></script>
+		<script src="peerjs_api_key.js"></script>
+		<script src="peerjs/dist/peer.min.js"></script>
+		<script src="game.lobby.js"></script>
+		<script>
+			var lobby;
+			var counter = 0;
+			var journal = [];
+			var timers = [];
+			var comm_types = {
+				'bcast': 0,
+				'ack': 1,
+			};
+			function time(timer_id)
+			{
+				timers[timer_id] = window.performance.now();
+			}
+			function timeEnd(timer_id)
+			{
+				var elapsed = window.performance.now() - timers[timer_id];
+				delete timers[timer_id];
+				return elapsed;
+			}
+			function init()
+			{				
+				lobby.on('full', function()
+				{
+					log("Lobby is full");
+				});
+				lobby.on('overflow', function(conn)
+				{
+					log("Connection rejected from "+conn.peer);
+				});
+				lobby.on('new_player', function(conn)
+				{
+					log("Connection accepted from "+conn.peer);
+					$("#mytable").append("<tr><td>"+conn.peer+"</td><td id='"+conn.peer+"_roundtrip'></td></tr>");	
+				});
+				lobby.on('data', function(conn,data)
+				{
+					if (lobby.masterNode)
+					{
+						if (data.type === comm_types.ack)
+						{
+							log("Received ack " + data.msg + " from "+conn.peer);
+							$("#"+conn.peer+"_roundtrip").text(timeEnd("bcast-"+conn.peer+":"+data.msg));
+							journal[data.msg]--;
+							if (journal[data.msg] <= 0)
+							{
+								$("#total_roundtrip").text(timeEnd("bcast-all"+data.msg));
+							}
+						}
+					}
+					else
+					{
+						if (data.type === comm_types.bcast)
+						{
+							log("Received msg from master: "+data.msg)
+							lobby.send({type: comm_types.ack, msg: data.msg});
+						}
+					}
+				});
+				lobby.on('init',function()
+				{
+					log("My peer id: "+lobby.id);
+					$("#myid").val(lobby.id);
+				});
+				if (lobby.masterNode)
+					$("#mytable").append("<tr><td>Complete round trip</td><td id='total_roundtrip'></td></tr>");
+				lobby.init();
+			}
+			function start_flooding()
+			{				
+				if (lobby.masterNode)
+					setInterval(flood,10);
+			}
+			function flood()
+			{
+				journal[counter] = lobby.connections.length;
+				time("bcast-all"+counter);
+				for (var i = 0; i < lobby.connections.length; i++)
+				{
+					time("bcast-"+lobby.connections[i].id+":"+counter)
+					lobby.send({
+						type: comm_types.bcast,
+						msg: counter
+					},i)
+				}
+				counter++;
+			}
+			function createLobby()
+			{
+				lobby = new Lobby(true, 6);
+				init();
+			}
+			function joinLobby(peer_id)
+			{
+				lobby = new Lobby(false, 6, peer_id);
+				init();
+			}
+			function log(s)
+			{
+				//console.log(s);
+			}
+		</script>
+	</head>
+	<body>
+		<button onclick="createLobby()">start new lobby</button>
+		<input id="myid" type="text" disabled>
+		<div id="notmaster">
+			<input id="destination_id" type="text">
+			<button onclick="joinLobby($('#destination_id').val())">connect</button>
+		</div>
+		<button onclick="start_flooding()">start benchmark</button>
+		<table id="mytable" border="1">
+		</table>
+	</body>
+</html>
+
+
