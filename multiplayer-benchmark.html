@@ -5,7 +5,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<script src="jquery/dist/jquery.min.js"></script>
-		<script src="peerjs_api_key.js"></script>
+		<script src="peerjs_options.js"></script>
 		<script src="peerjs/dist/peer.min.js"></script>
 		<script src="game.lobby.js"></script>
 		<script>
@@ -13,6 +13,7 @@
 			var counter = 0;
 			var journal = [];
 			var timers = [];
+			var fluffdata = [];
 			var comm_types = {
 				'bcast': 0,
 				'ack': 1,
@@ -77,8 +78,11 @@
 			}
 			function start_flooding()
 			{				
+				var fluff = parseInt($("#fluff").val());
+				for (var i = 0; i < fluff; i++)
+					fluffdata.push(123);
 				if (lobby.masterNode)
-					setInterval(flood,10);
+					setInterval(flood,100);
 			}
 			function flood()
 			{
@@ -89,7 +93,8 @@
 					time("bcast-"+lobby.connections[i].id+":"+counter)
 					lobby.send({
 						type: comm_types.bcast,
-						msg: counter
+						msg: counter,
+						fluff: fluffdata
 					},i)
 				}
 				counter++;
@@ -112,11 +117,15 @@
 	</head>
 	<body>
 		<button onclick="createLobby()">start new lobby</button>
-		<input id="myid" type="text" disabled>
+		<input id="myid" type="text" disabled placeholder="My ID">
+		<br>
 		<div id="notmaster">
 			<input id="destination_id" type="text">
 			<button onclick="joinLobby($('#destination_id').val())">connect</button>
 		</div>
+		<br>
+		<input id="fluff" type="text" placeholder="Amount of fluff to add to message" style="width:25%;">
+		<br>
 		<button onclick="start_flooding()">start benchmark</button>
 		<table id="mytable" border="1">
 		</table>
