@@ -11,7 +11,7 @@ function Lobby(master, maximum_players, master_peer_id)
 		if (peerjs_host.useOwnHost)
 			this.peer = new Peer(peerjs_host);
 		else
-			this.peer = new Peer({key: peerjs_api_key});
+			this.peer = new Peer({key: peerjs_host.apiKey});
 		this.peer.on('open', function(myid)
 		{
 			self.id = myid;
