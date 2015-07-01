@@ -10,3 +10,7 @@ you control player 0.
 ## Future plans
 * Implement the multiplayer mode.
 * Bug fixing
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/souvik1997/hexpong/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
